@@ -1,0 +1,129 @@
+/* Petits plus. Les couleurs viennent de css/couleurs.css, généré depuis une
+   graine unique : aucune valeur de couleur ne s'écrit ici. */
+
+@font-face {
+  font-family: 'Archivo';
+  src: url('../polices/archivo-latin.woff2?v=1') format('woff2');
+  font-weight: 400 800;
+  font-display: block;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+:root {
+  --e1: 4px; --e2: 8px; --e3: 12px; --e4: 16px; --e5: 24px; --e6: 32px;
+  --rythme: 200ms;
+  --decelere: cubic-bezier(.25, 1, .5, 1);
+}
+
+html, body { margin: 0; height: 100%; }
+
+body {
+  background: var(--fond);
+  color: var(--texte);
+  font-family: 'Archivo', system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+  height: 100svh;
+  display: flex;
+  flex-direction: column;
+  padding: var(--e4);
+  padding-bottom: max(var(--e4), env(safe-area-inset-bottom));
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Une classe qui pose display bat l'attribut hidden : sans cette ligne, un
+   élément caché par hidden reste visible dès qu'il porte une classe en flex. */
+[hidden] { display: none !important; }
+
+.haut { display: flex; justify-content: flex-end; min-height: 44px; align-items: center; }
+
+.discret {
+  min-height: 44px; padding: 0 var(--e3);
+  background: none; border: 1px solid var(--contour); border-radius: 12px;
+  color: var(--texte); font: inherit; font-size: 15px;
+}
+
+.compte { margin-top: var(--e4); }
+.mois-nom { font-size: 15px; color: var(--texte-doux); }
+
+.chiffre {
+  font-size: 104px; line-height: .9; font-weight: 800;
+  letter-spacing: -.03em; color: var(--accent);
+  margin: var(--e1) 0 0;
+}
+
+/* Le gros chiffre est décoratif pour un lecteur d'écran : il lui faut une
+   phrase. Mais à l'oeil, cette phrase répète ce que le chiffre montre déjà, et
+   une légende qu'on relit à chaque coup d'oeil est du bruit. Donc elle existe
+   pour la voix, pas pour l'oeil. */
+.lecture {
+  position: absolute;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0; border: 0;
+  overflow: hidden; white-space: nowrap;
+  clip-path: inset(50%);
+}
+
+.graphe { flex: 1; min-height: 0; display: flex; flex-direction: column; margin-top: var(--e5); }
+.colonnes { flex: 1; min-height: 0; display: flex; align-items: flex-end; gap: var(--e2); }
+
+.colonnes i {
+  flex: 1; display: block;
+  background: var(--accent-passe);
+  border-radius: 6px 6px 0 0;
+  height: 0;
+  transition: height var(--rythme) var(--decelere);
+}
+.colonnes i.en-cours { background: var(--accent); }
+
+.valeurs, .noms { display: flex; gap: var(--e2); }
+.valeurs { margin-top: var(--e2); }
+.valeurs span { flex: 1; text-align: center; font-size: 14px; color: var(--texte); }
+.valeurs span.en-cours { color: var(--accent); font-weight: 700; }
+.noms { margin-top: 2px; }
+.noms span { flex: 1; text-align: center; font-size: 12px; color: var(--texte-doux); }
+
+.souci {
+  margin: var(--e3) 0 0; font-size: 14px; line-height: 1.4;
+  color: var(--texte); background: var(--fond-eleve);
+  border-radius: 12px; padding: var(--e3);
+}
+
+.plus {
+  width: 100%; height: 72px; flex: none;
+  margin-top: var(--e5);
+  border: 0; border-radius: 20px;
+  background: var(--bouton); color: var(--sur-bouton);
+  font-family: inherit; font-size: 40px; font-weight: 600; line-height: 1;
+  touch-action: manipulation;
+}
+.plus:active { transform: scale(.985); }
+
+.bandeau {
+  position: fixed; left: var(--e4); right: var(--e4);
+  bottom: calc(72px + var(--e5) + max(var(--e4), env(safe-area-inset-bottom)) + var(--e2));
+  display: flex; align-items: center; justify-content: space-between; gap: var(--e3);
+  background: var(--fond-eleve); border-radius: 14px;
+  padding: var(--e2) var(--e2) var(--e2) var(--e4);
+  font-size: 15px;
+}
+
+.annuler {
+  min-height: 44px; padding: 0 var(--e4);
+  background: none; border: 0; border-radius: 10px;
+  color: var(--accent); font: inherit; font-size: 15px; font-weight: 700;
+}
+
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+@media (max-height: 700px) {
+  .chiffre { font-size: 80px; }
+  .graphe { margin-top: var(--e4); }
+  .plus { margin-top: var(--e4); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .colonnes i { transition: none; }
+  .plus:active { transform: none; }
+}

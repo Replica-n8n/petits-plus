@@ -6,10 +6,13 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "test": "node --test test/*.test.mjs",
-    "palette": "node --import ./tools/crochets.mjs tools/palette.mjs",
-    "essai-tests": "node tools/essai-tests.mjs",
+    "capture-app": "node tools/capture-app.mjs",
     "captures": "node tools/captures.mjs",
-    "polices": "node tools/essai-polices.mjs"
+    "essai-app": "node tools/essai-app.mjs",
+    "essai-tests": "node tools/essai-tests.mjs",
+    "icones": "node tools/icones.mjs",
+    "palette": "node --import ./tools/crochets.mjs tools/palette.mjs",
+    "polices": "node tools/essai-polices.mjs",
+    "test": "node --test test/*.test.mjs"
   }
 }

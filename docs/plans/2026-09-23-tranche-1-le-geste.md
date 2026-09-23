@@ -80,6 +80,8 @@ Structure et style : `height:100svh`, la page ne défile pas, bouton pleine larg
 de 72 px en bas, au moins 24 px de vide avant lui, échelle d'espacement en 4, 8,
 12, 16, 24, 32 px. Pas de cartes bordées, pas de capitales partout.
 **Preuve** : rendu à 360 × 732 **et** 360 × 640, rien ne dépasse, rien ne défile.
+**Fait le 2026-09-23** : mesuré par `npm run essai-app`, bouton à 716/732 et
+624/640, aucun défilement.
 
 ### 6. L'appui court
 Le chiffre roule vers le haut, la colonne du mois grandit dans le même mouvement,
@@ -89,22 +91,32 @@ un second appui compte un moment de trop. Vibration brève.
 `prefers-reduced-motion`, le chiffre change tout de suite et reste juste.
 ⚠️ Un élément recréé par `innerHTML` naît à son état final : animer l'élément qui
 existe déjà, pas un nouveau.
+**Fait le 2026-09-23** : les six barres sont posées une fois, puis seule leur
+hauteur change. Trois appuis rapprochés comptent trois, et sous
+`prefers-reduced-motion` le chiffre est juste tout de suite.
 
 ### 7. Le bandeau et l'annulation
 `Gardé · Annuler`, six secondes, puis il s'en va tout seul. `préciser` n'existe pas
 encore, il arrive avec les langages en tranche 2.
 **Preuve** : annuler dans la fenêtre retire le moment et remet le chiffre, annuler
 après ne fait rien. Le bandeau ne bloque jamais le bouton.
+**Fait le 2026-09-23**, vérifié y compris l'effacement tout seul au bout des six
+secondes.
 
 ### 8. Les six colonnes
 Les six derniers mois, mois en cours en couleur vive, mois sans rien à zéro et non
 absent. Le mois précédent en petit sous le grand chiffre.
 **Preuve** : jeu de données couvrant un passage de décembre à janvier.
+**Fait le 2026-09-23**, couvert par les tests du modèle.
+⚠️ Le compte du mois précédent n'est plus une ligne sous le chiffre : la maquette
+retenue le met sous sa colonne.
 
 ### 9. La persistance
 **Preuve** : appuyer, recharger, le compte est là. Tuer l'app, rouvrir, le compte
 est là. Bloquer les données de site dans Chrome : l'app dit que ça n'a pas été
 gardé, elle n'affiche pas un moment qui n'existe pas.
+**Fait le 2026-09-23** : les trois cas sont dans `npm run essai-app`, et le
+rangement menteur est injectable pour prouver que le contrôle mord.
 
 ### 10. Manifeste, icônes, service worker
 `manifest.webmanifest`, icônes 192, 512 et maskable, `theme-color` unique puisque
@@ -113,6 +125,11 @@ le fond reste sombre. `sw.js` : une seule constante `VERSION`, cache
 `res.clone()` **avant** tout `then`, navigation en `fetch(url,{cache:'no-cache'})`.
 **Preuve** : réseau coupé, l'app se relance depuis l'écran d'accueil. Les caches
 des autres apps de l'origine sont intacts après installation.
+**Fait le 2026-09-23** : hors ligne, l'app se recharge, le compte est là et la
+police est servie. Sans service worker, le contrôle tombe : c'est prouvé.
+⚠️ Corrigé au passage : le test `'serviceWorker' in navigator` faisait planter
+tout le chargement quand la propriété existe mais ne vaut rien. On teste la
+valeur.
 
 ### 11. L'installation
 Capter `beforeinstallprompt` et proposer un bouton visible. Le repli iOS
