@@ -6,6 +6,7 @@
   "type": "module",
   "private": true,
   "scripts": {
+    "audit": "node tools/audit.mjs",
     "capture-app": "node tools/capture-app.mjs",
     "captures": "node tools/captures.mjs",
     "essai-app": "node tools/essai-app.mjs",

@@ -142,6 +142,12 @@ Capter `beforeinstallprompt` et proposer un bouton visible. Le repli iOS
 textes de l'interface. Puis `/code-review`.
 **Preuve** : l'audit échoue quand on injecte une cible de 30 px ou un gris trop
 pâle. Un audit qui n'a jamais échoué ne prouve rien.
+**Fait le 2026-09-23**, et deux choses en sont sorties : le bandeau recouvrait
+les chiffres que l'audit mesurait (on mesure donc avant l'appui, et un contrôle
+vérifie que le bandeau ne cache jamais le gros chiffre), et la première
+injection de couleur ne mordait pas parce qu'elle visait une règle CSS moins
+spécifique que la vraie. Une injection qui échoue à faire échouer l'audit est
+d'abord une injection à corriger.
 
 ### 13. Pousser et vérifier en production
 Commit, push sur `main`, Pages activé par toi, puis vérifier **sur l'adresse
@@ -149,6 +155,9 @@ publique** que les fichiers répondent, que le service worker prend la main au
 rechargement et que l'app se relance hors ligne.
 **Preuve** : la sortie du script de vérification en ligne, et le commit de retour
 en arrière noté dans la mémoire du projet.
+**Fait le 2026-09-23** : Pages activé par elle, les huit fichiers répondent 200
+avec le bon type, et le parcours complet passe **contre la production** avec le
+rechargement hors ligne.
 
 ## Ce que cette tranche ne fait pas
 
