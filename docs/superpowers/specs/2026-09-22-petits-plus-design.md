@@ -121,6 +121,11 @@ surveillance, même gentil.
 - **Appairage** : le premier téléphone crée le couple et affiche un code de six
   caractères sans lettres ambiguës. Le second le tape une fois. Le code est la seule
   clé, régénérable depuis les réglages, ce qui coupe l'accès à l'ancien.
+- **Le code se tape UNE SEULE FOIS par téléphone**, puis il est gardé sur l'appareil
+  et rejoué à chaque ouverture. On ne le revoit jamais. Trois exceptions, toutes
+  visibles : un téléphone neuf ou des données de site effacées, une régénération
+  volontaire du code, et c'est tout. Les réglages affichent en permanence l'état,
+  `appairé` ou non, pour qu'on n'ait jamais à se demander si ça a marché.
 - **Un moment** : un identifiant tiré au hasard par le téléphone, l'instant absolu,
   le langage ou rien, l'auteur, et une marque de suppression éventuelle.
 - **Pas de conflit possible, par construction** : le serveur n'ajoute que des moments.
