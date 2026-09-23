@@ -63,7 +63,7 @@ const zones = await page.evaluate(() => {
   };
 });
 
-const mesures = await page.evaluate(async ({ capture, zones, echelle }) => {
+const analyserPixels = async ({ capture, zones, echelle }) => {
   const image = new Image();
   image.src = `data:image/png;base64,${capture}`;
   await image.decode();
@@ -96,7 +96,10 @@ const mesures = await page.evaluate(async ({ capture, zones, echelle }) => {
   };
 
   return Object.fromEntries(Object.entries(zones).map(([nom, zone]) => [nom, analyser(zone)]));
-}, { capture, zones, echelle: PIXEL.deviceScaleFactor ?? 1 });
+};
+
+const mesures = await page.evaluate(analyserPixels,
+  { capture, zones, echelle: PIXEL.deviceScaleFactor ?? 1 });
 
 const SEUILS = {
   chiffre: ['le gros chiffre sur son fond', 3],
@@ -149,6 +152,29 @@ const recouvrement = await page.evaluate(() => {
 verifier('le bandeau ne cache pas le chiffre', !recouvrement.croise,
   `bandeau à ${recouvrement.hautBandeau}, chiffre jusqu'à ${recouvrement.basChiffre}`);
 
+// Le volet des langages : ses cibles et son texte se mesurent aussi, sur les
+// pixels, parce qu'il est posé sur un fond plus clair que le reste.
+await page.evaluate(() => document.querySelector('#preciser').click());
+await page.waitForTimeout(300);
+const captureVolet = (await page.screenshot()).toString('base64');
+const zonesVolet = await page.evaluate(() => {
+  const n = document.querySelector('.langue');
+  const b = n.getBoundingClientRect();
+  return { langue: { x: b.x, y: b.y, l: b.width, h: b.height } };
+});
+const mesuresVolet = await page.evaluate(analyserPixels,
+  { capture: captureVolet, zones: zonesVolet, echelle: PIXEL.deviceScaleFactor ?? 1 });
+{
+  const { fond, encre } = mesuresVolet.langue;
+  const r = rapport(encre, fond);
+  verifier("le nom d'un langage tient 4,5:1", r >= 4.5, `mesuré ${r.toFixed(2)}:1 sur les pixels`);
+}
+const ecartsVolet = await page.evaluate(() => {
+  const boites = [...document.querySelectorAll('.langue')].map((n) => n.getBoundingClientRect());
+  return boites.slice(1).map((b, i) => Math.round(b.top - boites[i].bottom));
+});
+verifier('8 px entre deux langages', ecartsVolet.every((e) => e >= 8), ecartsVolet.join(', '));
+
 // 3. La couleur du thème ne doit pas diverger de la palette générée.
 const couleurs = readFileSync('css/couleurs.css', 'utf8');
 const fondGenere = couleurs.slice(couleurs.indexOf('--fond:') + 7, couleurs.indexOf(';', couleurs.indexOf('--fond:'))).trim();
@@ -161,13 +187,13 @@ verifier('les couleurs du manifeste suivent la palette',
 
 // 4. Le tampon de version ne vit que dans sw.js : deux endroits finissent
 // toujours par diverger, et donnent du nouveau HTML avec de l'ancien JS.
-for (const fichier of ['index.html', 'js/app.js', 'js/moments.js', 'js/stockage.js', 'css/app.css']) {
+for (const fichier of ['index.html', 'js/app.js', 'js/moments.js', 'js/stockage.js', 'js/langages.js', 'css/app.css']) {
   verifier(`aucun tampon ?v= écrit à la main dans ${fichier}`,
     !readFileSync(fichier, 'utf8').includes('?v='));
 }
 
 // 5. Aucun tiret cadratin dans ce qui s'affiche.
-const textes = ['index.html', 'js/app.js', 'manifest.webmanifest', 'css/app.css']
+const textes = ['index.html', 'js/app.js', 'js/langages.js', 'manifest.webmanifest', 'css/app.css']
   .map((f) => [f, readFileSync(f, 'utf8')]);
 for (const [fichier, contenu] of textes) {
   verifier(`aucun tiret cadratin dans ${fichier}`, !contenu.includes('—'));

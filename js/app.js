@@ -1,9 +1,11 @@
 // Petits plus, tranche 1 : le geste. Un appui compte, et rien ne se perd.
 import { ajouter, retirer, moisAMontrer, comptesDuMois, mediane } from './moments.js';
 import { stockageDuNavigateur, ErreurStockage } from './stockage.js';
+import { LANGAGES, preciser } from './langages.js';
 
 const MOIS_MONTRES = 12;
 const BANDEAU_MS = 6000;
+const APPUI_LONG_MS = 400;
 const NOMS_COURTS = ['janv', 'févr', 'mars', 'avr', 'mai', 'juin',
   'juil', 'août', 'sept', 'oct', 'nov', 'déc'];
 const NOMS_LONGS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin',
@@ -14,6 +16,8 @@ const vue = {
   moisNom: el('mois-nom'), chiffre: el('chiffre'), lecture: el('lecture'),
   colonnes: el('colonnes'), valeurs: el('valeurs'), noms: el('noms'),
   mediane: el('mediane'), medianeValeur: el('mediane-valeur'),
+  preciser: el('preciser'), volet: el('volet'), voletFond: el('volet-fond'),
+  langues: el('langues'),
   souci: el('souci'), plus: el('plus'),
   bandeau: el('bandeau'), bandeauTexte: el('bandeau-texte'), annuler: el('annuler'),
   installer: el('installer'),
@@ -23,6 +27,9 @@ const stockage = stockageDuNavigateur();
 let moments = [];
 let dernierId = null;
 let minuterieBandeau = null;
+let minuterieLong = null;
+let longOuvert = false;
+let idAPreciser = null;
 
 stockage.surContenuAbime((raison) => {
   direSouci(`Les moments rangés sur cet appareil sont illisibles (${raison}). ` +
@@ -119,17 +126,23 @@ function fairRouler(element) {
   );
 }
 
-function montrerBandeau(texte) {
+function montrerBandeau(texte, { avecPreciser = true } = {}) {
   clearTimeout(minuterieBandeau);
   vue.bandeauTexte.textContent = texte;
+  if (vue.preciser) vue.preciser.hidden = !avecPreciser;
   vue.bandeau.hidden = false;
   minuterieBandeau = setTimeout(cacherBandeau, BANDEAU_MS);
 }
 
-function cacherBandeau() {
+/**
+ * Cacher le bandeau oublie le dernier moment : « Annuler » n'a plus de cible.
+ * Sauf quand on le cache pour ouvrir le volet : là, le moment est toujours le
+ * nôtre, et son « Annuler » doit revenir intact quand le volet se referme.
+ */
+function cacherBandeau({ oublier = true } = {}) {
   clearTimeout(minuterieBandeau);
   vue.bandeau.hidden = true;
-  dernierId = null;
+  if (oublier) dernierId = null;
 }
 
 /** Écrit, et ne ment jamais : si le rangement refuse, l'appui est repris. */
@@ -147,15 +160,57 @@ function garder(nouveaux) {
   }
 }
 
-function appuyer() {
-  const avant = moments;
-  const apres = ajouter(avant, { maintenant: Date.now(), auteur: 'moi' });
-  if (!garder(apres)) return;
+function appuyer({ avecBandeau = true } = {}) {
+  const apres = ajouter(moments, { maintenant: Date.now(), auteur: 'moi' });
+  if (!garder(apres)) return null;
 
   dernierId = apres.at(-1).id;
   rendre({ anime: true });
   navigator.vibrate?.(12);
-  montrerBandeau('Gardé');
+  if (avecBandeau) montrerBandeau('Gardé');
+  return dernierId;
+}
+
+/* Le volet des cinq langages. Il ne s'ouvre jamais tout seul, et le moment est
+   DÉJÀ gardé quand il paraît : le fermer sans choisir ne perd rien. */
+function poserLesLangues() {
+  vue.langues.replaceChildren(...LANGAGES.map((l) => {
+    const bouton = document.createElement('button');
+    bouton.type = 'button';
+    bouton.className = 'langue';
+    bouton.dataset.id = l.id;
+    bouton.textContent = l.nom;
+    bouton.addEventListener('click', () => choisirLangue(l.id, l.court));
+    return bouton;
+  }));
+}
+
+function ouvrirVolet(id) {
+  if (!id) return;
+  idAPreciser = id;
+  cacherBandeau({ oublier: false });
+  vue.volet.hidden = false;
+  vue.langues.firstElementChild?.focus();
+}
+
+function fermerVolet({ texte = 'Gardé' } = {}) {
+  if (vue.volet.hidden) return;
+  vue.volet.hidden = true;
+  idAPreciser = null;
+  vue.plus.focus();
+  // Le bandeau revient APRÈS le volet : sans lui, un appui long n'aurait
+  // jamais eu son « Annuler ».
+  montrerBandeau(texte, { avecPreciser: false });
+}
+
+function choisirLangue(id, court) {
+  const cible = idAPreciser;
+  if (!cible) return;
+  const apres = preciser(moments, cible, id);
+  if (!garder(apres)) return;
+  rendre();
+  navigator.vibrate?.(8);
+  fermerVolet({ texte: `Gardé · ${court}` });
 }
 
 function annuler() {
@@ -166,7 +221,47 @@ function annuler() {
   rendre({ anime: true });
 }
 
-vue.plus.addEventListener('click', appuyer);
+poserLesLangues();
+
+vue.plus.addEventListener('pointerdown', (evenement) => {
+  if (evenement.pointerType === 'mouse' && evenement.button !== 0) return;
+  longOuvert = false;
+  clearTimeout(minuterieLong);
+  minuterieLong = setTimeout(() => {
+    longOuvert = true;
+    navigator.vibrate?.([8, 40, 14]);
+    ouvrirVolet(appuyer({ avecBandeau: false }));
+  }, APPUI_LONG_MS);
+});
+
+// Relâcher compte le moment. Sortir du bouton ou voir le geste annulé par le
+// système n'en compte AUCUN : c'est la façon habituelle de renoncer en cours
+// d'appui, et l'app ne doit pas la punir.
+vue.plus.addEventListener('pointerup', () => {
+  clearTimeout(minuterieLong);
+  if (longOuvert) { longOuvert = false; return; }
+  appuyer();
+});
+for (const renoncer of ['pointercancel', 'pointerleave']) {
+  vue.plus.addEventListener(renoncer, () => {
+    clearTimeout(minuterieLong);
+    longOuvert = false;
+  });
+}
+// Un appui long ne doit pas ouvrir le menu système par-dessus le volet.
+vue.plus.addEventListener('contextmenu', (evenement) => evenement.preventDefault());
+
+// Le clavier ne passe pas par le pointeur : un clic sans pointeur porte
+// detail 0, et c'est le seul cas où on compte ici.
+vue.plus.addEventListener('click', (evenement) => {
+  if (evenement.detail === 0) appuyer();
+});
+
+vue.preciser.addEventListener('click', () => ouvrirVolet(dernierId));
+vue.voletFond.addEventListener('click', () => fermerVolet());
+document.addEventListener('keydown', (evenement) => {
+  if (evenement.key === 'Escape') fermerVolet();
+});
 vue.annuler.addEventListener('click', annuler);
 
 // Installation : un bouton n'apparaît que si le navigateur le propose vraiment.

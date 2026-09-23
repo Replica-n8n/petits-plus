@@ -55,7 +55,7 @@ const chiffre = (page) => page.locator('#chiffre').innerText();
     ecran: window.innerHeight,
   }));
   verifier('la page ne défile pas', !mesures.defile);
-  verifier('le bouton tient dans l\'écran', mesures.bas <= mesures.ecran,
+  verifier("le bouton tient dans l\'écran", mesures.bas <= mesures.ecran,
     `${mesures.bas} / ${mesures.ecran}`);
   verifier('le bouton fait au moins 64 px', mesures.hauteurBouton >= 64,
     `${mesures.hauteurBouton} px`);
@@ -128,7 +128,7 @@ const chiffre = (page) => page.locator('#chiffre').innerText();
   await page.goto(BASE + '/', { waitUntil: 'load' });
   await page.click('#plus');
   const souci = page.locator('#souci');
-  verifier('le refus d\'écrire se voit', await souci.isVisible(),
+  verifier("le refus d\'écrire se voit", await souci.isVisible(),
     (await souci.innerText()).slice(0, 60));
   verifier('le compte ne ment pas', (await chiffre(page)) === '0',
     `lu : ${await chiffre(page)}`);
@@ -149,10 +149,10 @@ const chiffre = (page) => page.locator('#chiffre').innerText();
     await page.reload({ waitUntil: 'load' });
   } catch (erreur) {
     rechargee = false;
-    verifier('l\'app se recharge hors ligne', false, String(erreur.message).split('\n')[0].slice(0, 60));
+    verifier("l\'app se recharge hors ligne", false, String(erreur.message).split('\n')[0].slice(0, 60));
   }
   if (rechargee) {
-    verifier('l\'app s\'ouvre hors ligne', (await page.locator('#plus').count()) === 1);
+    verifier("l\'app s\'ouvre hors ligne", (await page.locator('#plus').count()) === 1);
     verifier('le compte est là hors ligne', (await chiffre(page)) === '1');
     const police = await page.evaluate(() => document.fonts.check('800 104px "Archivo"'));
     verifier('la police est servie hors ligne', police);
@@ -205,7 +205,7 @@ const chiffre = (page) => page.locator('#chiffre').innerText();
   const page = await contexte.newPage();
   await page.goto(BASE + '/', { waitUntil: 'load' });
   const colonnes = await page.locator('#colonnes i').count();
-  verifier('deux mois d\'usage donnent deux colonnes', colonnes === 2, `${colonnes}`);
+  verifier("deux mois d\'usage donnent deux colonnes", colonnes === 2, `${colonnes}`);
   await contexte.close();
 }
 
@@ -250,6 +250,95 @@ const chiffre = (page) => page.locator('#chiffre').innerText();
   const { contexte, page } = await ouvrir();
   await page.click('#plus');
   verifier('aucune médiane au premier mois', !(await page.locator('#mediane').isVisible()));
+  await contexte.close();
+}
+
+// 14. L'appui long ouvre les cinq langages, sans jamais compter deux fois.
+{
+  const { contexte, page } = await ouvrir();
+  const bouton = page.locator('#plus');
+  const boite = await bouton.boundingBox();
+  await page.mouse.move(boite.x + boite.width / 2, boite.y + boite.height / 2);
+  await page.mouse.down();
+  await page.waitForTimeout(600);
+  verifier("l'appui long ouvre le volet", await page.locator('#volet').isVisible());
+  verifier("l'appui long a gardé le moment", (await chiffre(page)) === '1');
+  await page.mouse.up();
+  await page.waitForTimeout(100);
+  verifier('relâcher après un appui long ne compte pas un deuxième moment',
+    (await chiffre(page)) === '1', `lu : ${await chiffre(page)}`);
+  verifier('le volet reste ouvert après le relâchement',
+    await page.locator('#volet').isVisible());
+
+  const cibles = await page.evaluate(() => [...document.querySelectorAll('.langue')]
+    .map((n) => Math.round(n.getBoundingClientRect().height)));
+  verifier('les cinq langages font 48 px', cibles.length === 5 && cibles.every((h) => h >= 48),
+    cibles.join(', '));
+
+  await page.locator('.langue[data-id="services"]').click();
+  verifier('le volet se ferme sur un choix', !(await page.locator('#volet').isVisible()));
+  const range = await page.evaluate(() => JSON.parse(localStorage.getItem('pp:moments:v1'))[0].langue);
+  verifier('le langage est rangé sur le moment', range === 'services', String(range));
+  verifier('le bandeau nomme le langage choisi',
+    (await page.locator('#bandeau-texte').innerText()).includes('Services'));
+  await contexte.close();
+}
+
+// 15. Fermer le volet sans choisir ne perd rien, et « Annuler » marche encore.
+{
+  const { contexte, page } = await ouvrir();
+  const boite = await page.locator('#plus').boundingBox();
+  await page.mouse.move(boite.x + boite.width / 2, boite.y + boite.height / 2);
+  await page.mouse.down();
+  await page.waitForTimeout(600);
+  await page.mouse.up();
+  await page.keyboard.press('Escape');
+  verifier('Échap ferme le volet', !(await page.locator('#volet').isVisible()));
+  verifier('le moment est resté gardé sans langage', (await chiffre(page)) === '1');
+  const langue = await page.evaluate(() => JSON.parse(localStorage.getItem('pp:moments:v1'))[0].langue);
+  verifier("il n'a aucun langage", langue === null, String(langue));
+
+  await page.locator('#annuler').click();
+  verifier('Annuler marche encore après le volet', (await chiffre(page)) === '0',
+    `lu : ${await chiffre(page)}`);
+  await contexte.close();
+}
+
+// 16. « préciser » dans le bandeau : c'est lui qui rend l'appui long visible.
+{
+  const { contexte, page } = await ouvrir();
+  await page.click('#plus');
+  verifier('le bandeau propose préciser', await page.locator('#preciser').isVisible());
+  await page.locator('#preciser').click();
+  verifier('préciser ouvre le volet', await page.locator('#volet').isVisible());
+  await page.locator('.langue[data-id="paroles"]').click();
+  const langue = await page.evaluate(() => JSON.parse(localStorage.getItem('pp:moments:v1'))[0].langue);
+  verifier('préciser pose le langage sur le dernier moment', langue === 'paroles', String(langue));
+  await contexte.close();
+}
+
+// 17. Renoncer en glissant hors du bouton ne compte aucun moment.
+{
+  const { contexte, page } = await ouvrir();
+  const boite = await page.locator('#plus').boundingBox();
+  await page.mouse.move(boite.x + boite.width / 2, boite.y + boite.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(boite.x + boite.width / 2, boite.y - 80);
+  await page.mouse.up();
+  await page.waitForTimeout(100);
+  verifier('glisser hors du bouton ne compte rien', (await chiffre(page)) === '0',
+    `lu : ${await chiffre(page)}`);
+  await contexte.close();
+}
+
+// 18. Le clavier compte exactement un moment, pas zéro et pas deux.
+{
+  const { contexte, page } = await ouvrir();
+  await page.locator('#plus').focus();
+  await page.keyboard.press('Enter');
+  await page.waitForTimeout(100);
+  verifier('la touche Entrée compte un moment', (await chiffre(page)) === '1',
+    `lu : ${await chiffre(page)}`);
   await contexte.close();
 }
 
