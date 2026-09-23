@@ -1,8 +1,8 @@
 // Petits plus, tranche 1 : le geste. Un appui compte, et rien ne se perd.
-import { ajouter, retirer, moisAMontrer, comptesDuMois } from './moments.js';
+import { ajouter, retirer, moisAMontrer, comptesDuMois, mediane } from './moments.js';
 import { stockageDuNavigateur, ErreurStockage } from './stockage.js';
 
-const MOIS_MONTRES = 6;
+const MOIS_MONTRES = 12;
 const BANDEAU_MS = 6000;
 const NOMS_COURTS = ['janv', 'févr', 'mars', 'avr', 'mai', 'juin',
   'juil', 'août', 'sept', 'oct', 'nov', 'déc'];
@@ -13,6 +13,7 @@ const el = (id) => document.getElementById(id);
 const vue = {
   moisNom: el('mois-nom'), chiffre: el('chiffre'), lecture: el('lecture'),
   colonnes: el('colonnes'), valeurs: el('valeurs'), noms: el('noms'),
+  mediane: el('mediane'), medianeValeur: el('mediane-valeur'),
   souci: el('souci'), plus: el('plus'),
   bandeau: el('bandeau'), bandeauTexte: el('bandeau-texte'), annuler: el('annuler'),
   installer: el('installer'),
@@ -38,9 +39,12 @@ function effacerSouci() {
   vue.souci.textContent = '';
 }
 
-/** Construit les six colonnes une seule fois : ensuite on anime ce qui existe. */
+/** Construit les colonnes une seule fois : ensuite on anime ce qui existe. */
 function poserColonnes(mois) {
+  // La ligne de médiane vit DANS le conteneur des colonnes : elle survit au
+  // remplacement des barres, donc on la remet en place après.
   vue.colonnes.replaceChildren(...mois.map(() => document.createElement('i')));
+  if (vue.mediane) vue.colonnes.append(vue.mediane);
   vue.valeurs.replaceChildren(...mois.map(() => document.createElement('span')));
   vue.noms.replaceChildren(...mois.map(() => document.createElement('span')));
 }
@@ -57,7 +61,10 @@ function rendre({ anime = false } = {}) {
   vue.colonnes.hidden = !aMontrer;
   vue.valeurs.hidden = !aMontrer;
   vue.noms.hidden = !aMontrer;
-  if (vue.colonnes.children.length !== mois.length) poserColonnes(mois);
+  // Compter les BARRES, pas les enfants : la ligne de médiane vit dans le même
+  // conteneur, et la compter faisait croire que les colonnes étaient déjà là.
+  const barres = vue.colonnes.querySelectorAll('i');
+  if (barres.length !== mois.length) poserColonnes(mois);
 
   const sommet = Math.max(1, ...mois.map((m) => m.compte));
   mois.forEach((m, i) => {
@@ -76,6 +83,17 @@ function rendre({ anime = false } = {}) {
     // affiche les comptes d'octobre sous « sept ».
     vue.noms.children[i].textContent = NOMS_COURTS[m.mois];
   });
+
+  // La ligne se pose sur la MÊME échelle que les barres, sinon elle mentirait.
+  if (vue.mediane) {
+    const valeur = aMontrer ? mediane(mois) : null;
+    vue.mediane.hidden = valeur === null;
+    if (valeur !== null) {
+      vue.mediane.style.bottom = `${(valeur / sommet) * 100}%`;
+      vue.medianeValeur.textContent = Number.isInteger(valeur)
+        ? String(valeur) : valeur.toFixed(1).replace('.', ',');
+    }
+  }
 
   const duMois = comptesDuMois(moments, maintenant);
   const nomDuMois = NOMS_LONGS[new Date(maintenant).getMonth()];

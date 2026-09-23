@@ -209,6 +209,50 @@ const chiffre = (page) => page.locator('#chiffre').innerText();
   await contexte.close();
 }
 
+// 12. La médiane : posée sur la même échelle que les barres, et absente tant
+// qu'il n'y a pas deux mois finis.
+{
+  const contexte = await navigateur.newContext(PIXEL);
+  await contexte.addInitScript(() => {
+    const d = new Date();
+    const moments = [];
+    // Quatre mois finis à 4, 8, 10 et 20, puis le mois en cours à 1.
+    [[4, 4], [3, 8], [2, 10], [1, 20], [0, 1]].forEach(([recul, combien]) => {
+      for (let i = 0; i < combien; i += 1) {
+        const q = new Date(d.getFullYear(), d.getMonth() - recul, 1 + i, 20, 0);
+        moments.push({ id: `m-${recul}-${i}`, instant: q.getTime(), auteur: 'moi', langue: null, supprime: false });
+      }
+    });
+    localStorage.setItem('pp:moments:v1', JSON.stringify(moments));
+  });
+  const page = await contexte.newPage();
+  await page.goto(BASE + '/', { waitUntil: 'load' });
+  await page.waitForTimeout(300);
+
+  const lu = await page.locator('#mediane-valeur').innerText();
+  verifier('la médiane ignore le mois en cours', lu === '9', `lue : ${lu}`);
+
+  const place = await page.evaluate(() => {
+    const zone = document.querySelector('#colonnes').getBoundingClientRect();
+    const ligne = document.querySelector('#mediane').getBoundingClientRect();
+    const plusHaute = [...document.querySelectorAll('#colonnes i')]
+      .map((b) => b.getBoundingClientRect().height).sort((a, b) => b - a)[0];
+    return { part: (zone.bottom - ligne.top) / zone.height, plusHaute, hauteurZone: zone.height };
+  });
+  // 9 sur un sommet de 20, c'est 45 % de la hauteur.
+  verifier('la ligne est posée sur la même échelle que les barres',
+    Math.abs(place.part - 0.45) < 0.02, `${(place.part * 100).toFixed(1)} %`);
+  await contexte.close();
+}
+
+// 13. Un seul mois fini : pas de ligne, parce qu'une médiane de un n'existe pas.
+{
+  const { contexte, page } = await ouvrir();
+  await page.click('#plus');
+  verifier('aucune médiane au premier mois', !(await page.locator('#mediane').isVisible()));
+  await contexte.close();
+}
+
 await navigateur.close();
 console.log(echecs === 0 ? '\nParcours complet : tout est vert.' : `\n${echecs} contrôle(s) en échec.`);
 if (echecs > 0) process.exit(1);

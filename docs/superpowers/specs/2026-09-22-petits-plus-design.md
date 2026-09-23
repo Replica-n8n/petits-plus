@@ -70,12 +70,24 @@ haut, sous le pouce. `height:100svh`, la page ne défile pas. Une cible
 `L'année ›` en haut ouvre le second écran, une icône ouvre les réglages.
 
 **Le graphe ne commence jamais avant le premier moment gardé**, et il monte
-jusqu'à six colonnes. Corrigé le 2026-09-23 après son essai : montrer six mois
+jusqu'à douze colonnes, une année entière. Douze choisi par elle le 2026-09-23
+contre six, après les avoir vues toutes les deux à 360 px : elle préfère les
+barres fines, et six ne répondait jamais à la question de la durée. Corrigé le 2026-09-23 après son essai : montrer six mois
 d'office affichait cinq colonnes à zéro qui ne bougeraient jamais, et qui
 occupaient la moitié de l'écran pour ne rien dire. Tant qu'il n'y a qu'un mois,
 le graphe ne s'affiche pas du tout : une colonne seule est toujours à 100 %.
 En revanche un mois creux au MILIEU de l'usage reste affiché à zéro, parce que
 lui s'est vraiment écoulé.
+
+**Une ligne de médiane** traverse le graphe dès qu'il y a deux mois finis.
+Médiane et non moyenne : un mois exceptionnel tirerait la moyenne vers le haut
+et ferait passer tous les mois ordinaires en dessous. Le mois en cours est
+exclu du calcul, sinon la ligne plongerait chaque 1er du mois sans que rien
+n'ait changé.
+⚠️ **Cette ligne dit l'ordinaire, jamais une cible.** Pas de mot de jugement,
+et les colonnes sous la ligne gardent exactement la couleur des autres. La
+section 2 reste entière : l'app compte, elle ne réclame rien, et ta copine voit
+le même écran.
 
 ### L'appui court
 

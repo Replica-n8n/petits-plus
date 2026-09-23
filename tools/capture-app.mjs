@@ -6,6 +6,7 @@ const BASE = process.env.BASE ?? 'http://localhost:8105';
 const REPARTITION = [6, 9, 5, 11, 9, 14]; // six mois d'usage
 // Le premier jour n'a qu'un mois : le graphe n'a alors rien à comparer.
 const PREMIER_JOUR = [3];
+const UNE_ANNEE = [6, 9, 5, 11, 9, 14, 8, 12, 7, 10, 13, 9];
 
 mkdirSync('maquettes/captures', { recursive: true });
 const navigateur = await chromium.launch();
@@ -14,6 +15,7 @@ for (const [suffixe, largeur, hauteur, repartition] of [
   ['732', 360, 732, REPARTITION],
   ['640', 360, 640, REPARTITION],
   ['premier-jour', 360, 732, PREMIER_JOUR],
+  ['douze-mois', 360, 732, UNE_ANNEE],
 ]) {
   const contexte = await navigateur.newContext({
     ...devices['Pixel 9'],

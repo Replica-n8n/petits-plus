@@ -57,6 +57,23 @@ export function fusionner(liste, entrants) {
   return [...parId.values()];
 }
 
+/**
+ * La médiane des mois FINIS, ou null tant qu'il y en a moins de deux.
+ *
+ * Deux choix, et chacun a sa raison. La médiane plutôt que la moyenne : un mois
+ * exceptionnel tire la moyenne vers le haut et fait passer tous les mois
+ * ordinaires en dessous. Et le mois en cours est exclu : il n'est pas fini, donc
+ * le 1er du mois la ligne plongerait sans que rien n'ait changé.
+ */
+export function mediane(mois) {
+  const finis = mois.filter((m) => !m.enCours).map((m) => m.compte).sort((a, b) => a - b);
+  if (finis.length < 2) return null;
+  const milieu = Math.floor(finis.length / 2);
+  return finis.length % 2 === 1
+    ? finis[milieu]
+    : (finis[milieu - 1] + finis[milieu]) / 2;
+}
+
 /** La clé « 2026-09 » d'un instant, dans le fuseau du téléphone. */
 export function cleDuMois(instant) {
   const d = new Date(instant);
