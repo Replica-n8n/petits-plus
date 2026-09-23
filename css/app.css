@@ -3,7 +3,7 @@
 
 @font-face {
   font-family: 'Archivo';
-  src: url('../polices/archivo-latin.woff2?v=1') format('woff2');
+  src: url('../polices/archivo-latin.woff2') format('woff2');
   font-weight: 400 800;
   font-display: block;
 }

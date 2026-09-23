@@ -1,6 +1,6 @@
 // Service worker de Petits plus.
 // Une SEULE constante à bouger à chaque livraison : tout le reste en découle.
-const VERSION = 1;
+const VERSION = 2;
 
 const CACHE = `petits-plus:app:v${VERSION}`;
 const PREFIXE = 'petits-plus:app:';
@@ -8,6 +8,12 @@ const PREFIXE = 'petits-plus:app:';
 // Chaque fichier est demandé avec ?v= dès l'installation : sans ça, un service
 // worker installé juste après une mise en ligne range l'ANCIEN fichier servi par
 // le cache de GitHub Pages, et l'app reste vieille pour de bon.
+//
+// Le tampon n'existe QUE dans ce fichier. La page, elle, demande des adresses
+// nues, et le cache les retrouve par ignoreSearch. Écrire « ?v=1 » à la main
+// dans index.html reviendrait à avoir deux versions à tenir d'accord, ce qui
+// finit toujours par donner du nouveau HTML avec de l'ancien JS.
+// tools/audit.mjs refuse tout ?v= écrit ailleurs qu'ici.
 const FICHIERS = [
   './',
   'index.html',

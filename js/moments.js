@@ -6,7 +6,19 @@
 // une MARQUE. Sans ça, tout ce qui aura été gardé avant l'appairage serait
 // impossible à réconcilier.
 
-const identifiant = () => globalThis.crypto.randomUUID();
+// crypto.randomUUID n'existe QUE dans un contexte sécurisé. Ouvrir le serveur
+// local depuis le téléphone par l'adresse du PC n'en est pas un, et chaque
+// appui lèverait sans rien dire. On se rabat sur des octets au hasard, qui eux
+// restent disponibles, et en dernier recours sur l'horloge.
+const identifiant = () => {
+  const c = globalThis.crypto;
+  if (c?.randomUUID) return c.randomUUID();
+  if (c?.getRandomValues) {
+    const octets = c.getRandomValues(new Uint8Array(16));
+    return [...octets].map((o) => o.toString(16).padStart(2, '0')).join('');
+  }
+  return `${Date.now().toString(16)}${Math.random().toString(16).slice(2, 14)}`;
+};
 
 /** Ajoute un moment et rend une nouvelle liste. */
 export function ajouter(liste, { maintenant, auteur, langue = null }) {

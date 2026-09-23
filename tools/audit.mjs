@@ -159,7 +159,14 @@ verifier('les couleurs du manifeste suivent la palette',
   manifeste.theme_color === fondGenere && manifeste.background_color === fondGenere,
   `${manifeste.theme_color} / ${manifeste.background_color}`);
 
-// 4. Aucun tiret cadratin dans ce qui s'affiche.
+// 4. Le tampon de version ne vit que dans sw.js : deux endroits finissent
+// toujours par diverger, et donnent du nouveau HTML avec de l'ancien JS.
+for (const fichier of ['index.html', 'js/app.js', 'js/moments.js', 'js/stockage.js', 'css/app.css']) {
+  verifier(`aucun tampon ?v= écrit à la main dans ${fichier}`,
+    !readFileSync(fichier, 'utf8').includes('?v='));
+}
+
+// 5. Aucun tiret cadratin dans ce qui s'affiche.
 const textes = ['index.html', 'js/app.js', 'manifest.webmanifest', 'css/app.css']
   .map((f) => [f, readFileSync(f, 'utf8')]);
 for (const [fichier, contenu] of textes) {

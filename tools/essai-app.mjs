@@ -161,6 +161,25 @@ const chiffre = (page) => page.locator('#chiffre').innerText();
   await contexte.close();
 }
 
+// 9. L'app reste ouverte pendant que le mois change : les étiquettes doivent
+// suivre les valeurs. Sans ça, les comptes d'octobre s'affichent sous « sept ».
+{
+  const contexte = await navigateur.newContext(PIXEL);
+  const page = await contexte.newPage();
+  await page.clock.install({ time: new Date('2026-09-30T23:59:30') });
+  await page.goto(BASE + '/', { waitUntil: 'load' });
+  await page.click('#plus');
+  const avant = (await page.locator('#noms').innerText()).replace(/\s+/g, ' ').trim();
+  await page.clock.fastForward('01:00');
+  await page.click('#plus');
+  const apres = (await page.locator('#noms').innerText()).replace(/\s+/g, ' ').trim();
+  verifier('les étiquettes suivent le changement de mois', avant !== apres,
+    `${avant}  puis  ${apres}`);
+  verifier('le dernier mois affiché est le mois en cours',
+    apres.endsWith('oct'), apres);
+  await contexte.close();
+}
+
 await navigateur.close();
 console.log(echecs === 0 ? '\nParcours complet : tout est vert.' : `\n${echecs} contrôle(s) en échec.`);
 if (echecs > 0) process.exit(1);

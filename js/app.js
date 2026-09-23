@@ -1,6 +1,6 @@
 // Petits plus, tranche 1 : le geste. Un appui compte, et rien ne se perd.
-import { ajouter, retirer, comptesParMois, comptesDuMois } from './moments.js?v=1';
-import { stockageDuNavigateur, ErreurStockage } from './stockage.js?v=1';
+import { ajouter, retirer, comptesParMois, comptesDuMois } from './moments.js';
+import { stockageDuNavigateur, ErreurStockage } from './stockage.js';
 
 const MOIS_MONTRES = 6;
 const BANDEAU_MS = 6000;
@@ -42,11 +42,7 @@ function effacerSouci() {
 function poserColonnes(mois) {
   vue.colonnes.replaceChildren(...mois.map(() => document.createElement('i')));
   vue.valeurs.replaceChildren(...mois.map(() => document.createElement('span')));
-  vue.noms.replaceChildren(...mois.map((m) => {
-    const s = document.createElement('span');
-    s.textContent = NOMS_COURTS[m.mois];
-    return s;
-  }));
+  vue.noms.replaceChildren(...mois.map(() => document.createElement('span')));
 }
 
 function rendre({ anime = false } = {}) {
@@ -65,15 +61,25 @@ function rendre({ anime = false } = {}) {
     const valeur = vue.valeurs.children[i];
     valeur.textContent = String(m.compte);
     valeur.classList.toggle('en-cours', m.enCours);
+
+    // Le nom se réécrit à CHAQUE rendu : sinon, une app restée ouverte pendant
+    // le passage à un nouveau mois garde les six étiquettes de la veille et
+    // affiche les comptes d'octobre sous « sept ».
+    vue.noms.children[i].textContent = NOMS_COURTS[m.mois];
   });
 
   const duMois = comptesDuMois(moments, maintenant);
   const nomDuMois = NOMS_LONGS[new Date(maintenant).getMonth()];
   vue.moisNom.textContent = nomDuMois;
   vue.chiffre.textContent = String(duMois);
-  vue.lecture.textContent = duMois === 0
+  // Le graphe est invisible aux lecteurs d'écran : les six mois doivent donc
+  // exister en toutes lettres, sinon la réponse à « est-ce que j'en reçois
+  // plus » leur est purement inaccessible.
+  const suite = mois.map((m) => `${NOMS_LONGS[m.mois]} ${m.compte}`).join(', ');
+  vue.lecture.textContent = (duMois === 0
     ? `Aucun moment gardé en ${nomDuMois}.`
-    : `${duMois} moment${duMois > 1 ? 's' : ''} gardé${duMois > 1 ? 's' : ''} en ${nomDuMois}.`;
+    : `${duMois} moment${duMois > 1 ? 's' : ''} gardé${duMois > 1 ? 's' : ''} en ${nomDuMois}.`)
+    + ` Six derniers mois : ${suite}.`;
 
   if (anime) fairRouler(vue.chiffre);
 }
@@ -157,5 +163,5 @@ rendre();
 // propriété sans rien derrière, et « in » suffirait à faire planter le
 // chargement complet de l'app pour un service worker.
 if (navigator.serviceWorker) {
-  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js?v=1'));
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js'));
 }

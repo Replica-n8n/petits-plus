@@ -9,9 +9,15 @@ tranche en cours dans `docs/plans/`.
 - **Aucune couleur ne s'écrit à la main.** `css/couleurs.css` est généré par
   `npm run palette` depuis une seule graine, et le script refuse d'écrire si un
   contraste calculé passe sous son seuil.
-- **Une seule constante `VERSION`**, en haut de `sw.js`. Les fichiers sont
-  précachés avec `?v=` : sans ça, un service worker installé juste après une
-  mise en ligne range l'ancien fichier servi par le cache de Pages.
+- **Une seule constante `VERSION`**, en haut de `sw.js`, et elle est vraiment
+  seule : la page demande des adresses nues, le cache les retrouve par
+  `ignoreSearch`, et `npm run audit` refuse tout `?v=` écrit à la main
+  ailleurs. Les fichiers sont précachés avec `?v=` parce qu'un service worker
+  installé juste après une mise en ligne rangerait sinon l'ancien fichier servi
+  par le cache de Pages.
+- **Le graphe est invisible aux lecteurs d'écran** : les six mois sont donc
+  écrits en toutes lettres dans la zone `role="status"`. Toute colonne ajoutée
+  doit y apparaître aussi.
 - **Le modèle est prêt pour la synchronisation depuis la tranche 1** :
   identifiant tiré par le téléphone, instant absolu, auteur, suppression par
   marque. Ne jamais effacer une ligne : un téléphone hors ligne la ferait
