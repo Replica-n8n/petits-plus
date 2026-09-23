@@ -35,6 +35,10 @@ Deux variantes de l'accueil en HTML statique, ouvertes au format Pixel 9.
 Elles diffèrent sur une seule chose : la place du compte du mois précédent et la
 taille des colonnes. Tu choisis.
 **Preuve** : capture des deux à 360 × 732, et le choix est noté ici.
+**Fait le 2026-09-23 : elle a choisi la variante B.** Le compte de chaque mois
+passe sous sa colonne, le graphe prend toute la place restante (357 px mesurés
+contre 132 pour A), et la ligne « août : 9 » disparaît puisqu'elle était déjà
+lisible dans le graphe.
 
 ### 2. La palette, générée
 `tools/palette.mjs` prend le rouge pâle comme graine, sort les variables CSS :
