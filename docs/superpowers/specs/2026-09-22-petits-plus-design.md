@@ -64,9 +64,10 @@ Trois écrans : un pour agir, un pour regarder, une feuille pour les réglages.
 ### L'accueil, écran d'usage
 
 De haut en bas : le mois en cours en gros chiffre, les mois en colonnes avec le
-mois en cours en couleur vive,
-la répartition des langages si elle a de quoi parler, un espace vide, puis le
-bouton **+** pleine largeur en bas, 72 px de haut, sous le pouce.
+mois en cours en couleur vive, la répartition des langages si elle a de quoi
+parler, un espace vide, puis le bouton **+** pleine largeur en bas, 72 px de
+haut, sous le pouce. `height:100svh`, la page ne défile pas. Une cible
+`L'année ›` en haut ouvre le second écran, une icône ouvre les réglages.
 
 **Le graphe ne commence jamais avant le premier moment gardé**, et il monte
 jusqu'à six colonnes. Corrigé le 2026-09-23 après son essai : montrer six mois
@@ -74,9 +75,7 @@ d'office affichait cinq colonnes à zéro qui ne bougeraient jamais, et qui
 occupaient la moitié de l'écran pour ne rien dire. Tant qu'il n'y a qu'un mois,
 le graphe ne s'affiche pas du tout : une colonne seule est toujours à 100 %.
 En revanche un mois creux au MILIEU de l'usage reste affiché à zéro, parce que
-lui s'est vraiment écoulé. `height:100svh`,
-la page ne défile pas. Une cible `L'année ›` en haut ouvre le second écran, une
-icône ouvre les réglages.
+lui s'est vraiment écoulé.
 
 ### L'appui court
 
