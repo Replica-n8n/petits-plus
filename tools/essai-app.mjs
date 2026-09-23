@@ -180,6 +180,35 @@ const chiffre = (page) => page.locator('#chiffre').innerText();
   await contexte.close();
 }
 
+// 10. Un premier mois d'usage ne montre AUCUNE colonne à zéro devant lui.
+{
+  const { contexte, page } = await ouvrir();
+  await page.click('#plus');
+  const colonnes = await page.locator('#colonnes i').count();
+  const visible = await page.locator('#colonnes').isVisible();
+  verifier('le premier mois ne montre pas cinq colonnes vides',
+    !visible || colonnes <= 1, `${colonnes} colonne(s), visible : ${visible}`);
+  await contexte.close();
+}
+
+// 11. Deux mois d'usage : deux colonnes, et rien avant le premier moment.
+{
+  const contexte = await navigateur.newContext(PIXEL);
+  await contexte.addInitScript(() => {
+    const d = new Date();
+    const moisDernier = new Date(d.getFullYear(), d.getMonth() - 1, 15, 20, 0);
+    localStorage.setItem('pp:moments:v1', JSON.stringify([
+      { id: 'a', instant: moisDernier.getTime(), auteur: 'elle', langue: null, supprime: false },
+      { id: 'b', instant: Date.now(), auteur: 'moi', langue: null, supprime: false },
+    ]));
+  });
+  const page = await contexte.newPage();
+  await page.goto(BASE + '/', { waitUntil: 'load' });
+  const colonnes = await page.locator('#colonnes i').count();
+  verifier('deux mois d\'usage donnent deux colonnes', colonnes === 2, `${colonnes}`);
+  await contexte.close();
+}
+
 await navigateur.close();
 console.log(echecs === 0 ? '\nParcours complet : tout est vert.' : `\n${echecs} contrôle(s) en échec.`);
 if (echecs > 0) process.exit(1);

@@ -3,12 +3,18 @@ import { chromium, devices } from 'playwright';
 import { mkdirSync } from 'node:fs';
 
 const BASE = process.env.BASE ?? 'http://localhost:8105';
-const REPARTITION = [6, 9, 5, 11, 9, 14]; // avril à septembre
+const REPARTITION = [6, 9, 5, 11, 9, 14]; // six mois d'usage
+// Le premier jour n'a qu'un mois : le graphe n'a alors rien à comparer.
+const PREMIER_JOUR = [3];
 
 mkdirSync('maquettes/captures', { recursive: true });
 const navigateur = await chromium.launch();
 
-for (const [suffixe, largeur, hauteur] of [['732', 360, 732], ['640', 360, 640]]) {
+for (const [suffixe, largeur, hauteur, repartition] of [
+  ['732', 360, 732, REPARTITION],
+  ['640', 360, 640, REPARTITION],
+  ['premier-jour', 360, 732, PREMIER_JOUR],
+]) {
   const contexte = await navigateur.newContext({
     ...devices['Pixel 9'],
     viewport: { width: largeur, height: hauteur },
@@ -27,7 +33,7 @@ for (const [suffixe, largeur, hauteur] of [['732', 360, 732], ['640', 360, 640]]
       }
     });
     localStorage.setItem('pp:moments:v1', JSON.stringify(moments));
-  }, REPARTITION);
+  }, repartition);
 
   const page = await contexte.newPage();
   await page.goto(BASE + '/', { waitUntil: 'load' });

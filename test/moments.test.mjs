@@ -2,7 +2,7 @@
 // est prouvé en injectant le défaut qu'il doit attraper.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { ajouter, retirer, fusionner, comptesParMois, comptesDuMois } from '../js/moments.js';
+import { ajouter, retirer, fusionner, comptesParMois, comptesDuMois, moisAMontrer } from '../js/moments.js';
 
 const instant = (texte) => new Date(texte).getTime();
 
@@ -84,4 +84,53 @@ test('un moment posé plus tard dans la journée compte pour le même mois', () 
   const fin = instant('2026-09-30T23:59:00');
   const liste = ajouter([], { maintenant: instant('2026-09-01T00:01:00'), auteur: 'elle' });
   assert.equal(comptesDuMois(liste, fin), 1);
+});
+
+test('le graphe ne commence jamais avant le premier moment gardé', () => {
+  const fin = instant('2026-09-15T12:00:00');
+  let liste = ajouter([], { maintenant: instant('2026-08-20T10:00:00'), auteur: 'elle' });
+  liste = ajouter(liste, { maintenant: instant('2026-09-02T10:00:00'), auteur: 'moi' });
+
+  const mois = moisAMontrer(liste, { fin, maximum: 6 });
+  assert.deepEqual(mois.map((m) => m.cle), ['2026-08', '2026-09'],
+    'deux mois d\'usage, deux colonnes : pas quatre colonnes à zéro devant');
+  assert.deepEqual(mois.map((m) => m.compte), [1, 1]);
+});
+
+test('passé six mois d\'usage, on en montre six, pas plus', () => {
+  const fin = instant('2026-09-15T12:00:00');
+  let liste = ajouter([], { maintenant: instant('2025-01-05T10:00:00'), auteur: 'elle' });
+  liste = ajouter(liste, { maintenant: instant('2026-09-02T10:00:00'), auteur: 'moi' });
+
+  const mois = moisAMontrer(liste, { fin, maximum: 6 });
+  assert.equal(mois.length, 6);
+  assert.equal(mois.at(-1).cle, '2026-09');
+  assert.equal(mois.at(0).cle, '2026-04');
+});
+
+test('un mois creux au MILIEU de l\'usage reste visible à zéro', () => {
+  const fin = instant('2026-09-15T12:00:00');
+  let liste = ajouter([], { maintenant: instant('2026-07-20T10:00:00'), auteur: 'elle' });
+  liste = ajouter(liste, { maintenant: instant('2026-09-02T10:00:00'), auteur: 'moi' });
+
+  const mois = moisAMontrer(liste, { fin, maximum: 6 });
+  assert.deepEqual(mois.map((m) => m.cle), ['2026-07', '2026-08', '2026-09'],
+    'août est vide mais il s\'est écoulé : le trou fait partie de l\'histoire');
+  assert.deepEqual(mois.map((m) => m.compte), [1, 0, 1]);
+});
+
+test('sans aucun moment, il n\'y a rien à montrer', () => {
+  assert.deepEqual(moisAMontrer([], { fin: instant('2026-09-15T12:00:00'), maximum: 6 }), []);
+});
+
+test('les moments retirés ne rallongent pas le graphe', () => {
+  const fin = instant('2026-09-15T12:00:00');
+  let liste = ajouter([], { maintenant: instant('2026-04-20T10:00:00'), auteur: 'elle' });
+  const vieux = liste[0].id;
+  liste = ajouter(liste, { maintenant: instant('2026-09-02T10:00:00'), auteur: 'moi' });
+  liste = retirer(liste, vieux, fin);
+
+  const mois = moisAMontrer(liste, { fin, maximum: 6 });
+  assert.deepEqual(mois.map((m) => m.cle), ['2026-09'],
+    'le seul moment d\'avril a été retiré : avril n\'a plus à être montré');
 });

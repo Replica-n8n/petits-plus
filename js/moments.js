@@ -72,6 +72,26 @@ export function comptesDuMois(liste, instant) {
 }
 
 /**
+ * Les mois à montrer : jamais avant le premier moment gardé, et six au plus.
+ *
+ * Montrer systématiquement six mois affichait cinq colonnes à zéro à quelqu'un
+ * qui commence, et elles ne bougeraient jamais : ce n'est pas une histoire,
+ * c'est du vide qui occupe la moitié de l'écran. En revanche un mois creux au
+ * MILIEU de l'usage reste affiché à zéro, parce que lui s'est vraiment écoulé.
+ */
+export function moisAMontrer(liste, { fin, maximum = 6 }) {
+  const premiers = vivants(liste);
+  if (premiers.length === 0) return [];
+
+  const debut = new Date(Math.min(...premiers.map((m) => m.instant)));
+  const dernier = new Date(fin);
+  const ecoules = (dernier.getFullYear() - debut.getFullYear()) * 12
+    + (dernier.getMonth() - debut.getMonth()) + 1;
+
+  return comptesParMois(liste, { fin, nombre: Math.max(1, Math.min(maximum, ecoules)) });
+}
+
+/**
  * Les `nombre` derniers mois jusqu'à `fin`, le plus ancien en premier. Un mois
  * sans rien vaut zéro et reste dans la suite : c'est ce qui fait que le graphe
  * ne saute pas et que décembre passe à janvier sans trou.

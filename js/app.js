@@ -1,5 +1,5 @@
 // Petits plus, tranche 1 : le geste. Un appui compte, et rien ne se perd.
-import { ajouter, retirer, comptesParMois, comptesDuMois } from './moments.js';
+import { ajouter, retirer, moisAMontrer, comptesDuMois } from './moments.js';
 import { stockageDuNavigateur, ErreurStockage } from './stockage.js';
 
 const MOIS_MONTRES = 6;
@@ -47,7 +47,16 @@ function poserColonnes(mois) {
 
 function rendre({ anime = false } = {}) {
   const maintenant = Date.now();
-  const mois = comptesParMois(moments, { fin: maintenant, nombre: MOIS_MONTRES });
+  const mois = moisAMontrer(moments, { fin: maintenant, maximum: MOIS_MONTRES });
+
+  // Une colonne seule est toujours à 100 % : elle n'apprend rien que le gros
+  // chiffre ne dise déjà. Le graphe n'apparaît donc qu'au deuxième mois, quand
+  // il y a vraiment quelque chose à comparer. On cache son CONTENU et pas la
+  // section, qui reste l'espace poussant le bouton sous le pouce.
+  const aMontrer = mois.length >= 2;
+  vue.colonnes.hidden = !aMontrer;
+  vue.valeurs.hidden = !aMontrer;
+  vue.noms.hidden = !aMontrer;
   if (vue.colonnes.children.length !== mois.length) poserColonnes(mois);
 
   const sommet = Math.max(1, ...mois.map((m) => m.compte));
@@ -75,11 +84,11 @@ function rendre({ anime = false } = {}) {
   // Le graphe est invisible aux lecteurs d'écran : les six mois doivent donc
   // exister en toutes lettres, sinon la réponse à « est-ce que j'en reçois
   // plus » leur est purement inaccessible.
-  const suite = mois.map((m) => `${NOMS_LONGS[m.mois]} ${m.compte}`).join(', ');
-  vue.lecture.textContent = (duMois === 0
+  const debut = (duMois === 0
     ? `Aucun moment gardé en ${nomDuMois}.`
-    : `${duMois} moment${duMois > 1 ? 's' : ''} gardé${duMois > 1 ? 's' : ''} en ${nomDuMois}.`)
-    + ` Six derniers mois : ${suite}.`;
+    : `${duMois} moment${duMois > 1 ? 's' : ''} gardé${duMois > 1 ? 's' : ''} en ${nomDuMois}.`);
+  const suite = mois.map((m) => `${NOMS_LONGS[m.mois]} ${m.compte}`).join(', ');
+  vue.lecture.textContent = mois.length < 2 ? debut : `${debut} Mois montrés : ${suite}.`;
 
   if (anime) fairRouler(vue.chiffre);
 }
