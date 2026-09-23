@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Petits plus, maquette B</title>
+<link rel="stylesheet" href="../css/couleurs.css">
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  :root { --e1: 4px; --e2: 8px; --e3: 12px; --e4: 16px; --e5: 24px; --e6: 32px; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: var(--fond); color: var(--texte);
+    font-family: system-ui, sans-serif;
+    font-variant-numeric: tabular-nums;
+    height: 100svh; display: flex; flex-direction: column;
+    padding: var(--e4); overflow: hidden;
+  }
+
+  .haut { display: flex; align-items: center; justify-content: space-between; }
+  .lien {
+    color: var(--texte-doux); text-decoration: none; font-size: 15px;
+    min-height: 44px; display: inline-flex; align-items: center; padding-right: var(--e2);
+  }
+  .reglages {
+    min-width: 44px; min-height: 44px; display: inline-flex;
+    align-items: center; justify-content: center; color: var(--texte-doux);
+    background: none; border: 0; padding: 0;
+  }
+
+  .compte { margin-top: var(--e4); }
+  .mois-nom { font-size: 15px; color: var(--texte-doux); }
+  .chiffre {
+    font-size: 104px; line-height: .9; font-weight: 800;
+    letter-spacing: -.03em; color: var(--accent); margin: var(--e1) 0 0;
+  }
+
+  /* Les colonnes prennent toute la place restante, et chaque mois porte son
+     propre compte : le mois précédent se lit dans le graphe, pas dans une ligne. */
+  .graphe { flex: 1; min-height: 0; display: flex; flex-direction: column; margin-top: var(--e5); }
+  .colonnes { flex: 1; min-height: 0; display: flex; align-items: flex-end; gap: var(--e2); }
+  .colonnes i { flex: 1; background: var(--accent-passe); border-radius: 6px 6px 0 0; display: block; }
+  .colonnes i.en-cours { background: var(--accent); }
+  .valeurs, .noms { display: flex; gap: var(--e2); }
+  .valeurs { margin-top: var(--e2); }
+  .valeurs span { flex: 1; text-align: center; font-size: 14px; color: var(--texte); }
+  .valeurs span.en-cours { color: var(--accent); font-weight: 700; }
+  .noms { margin-top: 2px; }
+  .noms span { flex: 1; text-align: center; font-size: 12px; color: var(--texte-doux); }
+
+  .plus {
+    width: 100%; height: 72px; border: 0; border-radius: 20px;
+    background: var(--bouton); color: var(--sur-bouton);
+    font-size: 40px; font-weight: 600; line-height: 1;
+    margin-top: var(--e5);
+  }
+
+  @media (max-height: 700px) {
+    .chiffre { font-size: 80px; }
+    .graphe { margin-top: var(--e4); }
+    .plus { margin-top: var(--e4); }
+  }
+</style>
+</head>
+<body>
+  <div class="haut">
+    <a class="lien" href="#">L'année ›</a>
+    <button class="reglages" aria-label="Réglages">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M4 7h10M18 7h2M4 17h4M12 17h8"></path>
+        <circle cx="16" cy="7" r="2.4" fill="none"></circle>
+        <circle cx="10" cy="17" r="2.4" fill="none"></circle>
+      </svg>
+    </button>
+  </div>
+
+  <div class="compte">
+    <div class="mois-nom">septembre</div>
+    <div class="chiffre">14</div>
+  </div>
+
+  <div class="graphe">
+    <div class="colonnes">
+      <i style="height:38%"></i>
+      <i style="height:55%"></i>
+      <i style="height:30%"></i>
+      <i style="height:66%"></i>
+      <i style="height:44%"></i>
+      <i class="en-cours" style="height:82%"></i>
+    </div>
+    <div class="valeurs">
+      <span>6</span><span>9</span><span>5</span><span>11</span><span>9</span><span class="en-cours">14</span>
+    </div>
+    <div class="noms">
+      <span>avr</span><span>mai</span><span>juin</span><span>juil</span><span>août</span><span>sept</span>
+    </div>
+  </div>
+
+  <button class="plus" aria-label="Garder un moment">+</button>
+</body>
+</html>

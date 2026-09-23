@@ -1,0 +1,13 @@
+/* Généré par tools/palette.mjs depuis la graine #c05a7d. Ne pas modifier à la main. */
+:root {
+  color-scheme: dark;
+  --fond: #151313;
+  --fond-eleve: #2d292a;
+  --texte: #e8e1e1;
+  --texte-doux: #ccc5c5;
+  --contour: #4a4646;
+  --accent: #ffb1c7;
+  --accent-passe: #ab496c;
+  --bouton: #d96e92;
+  --sur-bouton: #290010;
+}
