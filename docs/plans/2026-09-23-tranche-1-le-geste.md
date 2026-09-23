@@ -158,6 +158,11 @@ en arrière noté dans la mémoire du projet.
 **Fait le 2026-09-23** : Pages activé par elle, les huit fichiers répondent 200
 avec le bon type, et le parcours complet passe **contre la production** avec le
 rechargement hors ligne.
+⚠️ Vu en direct : juste après le push des corrections, la production a servi
+pendant une minute l'ANCIEN `js/app.js` alors que `sw.js` était déjà à jour, et
+deux contrôles sont tombés. Rien à corriger dans le code : c'est le cache de
+Pages, `Cache-Control: max-age=600`. **Toujours relancer la vérification de
+production au moins une deuxième fois avant de croire un échec.**
 
 ## Ce que cette tranche ne fait pas
 
