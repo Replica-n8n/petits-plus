@@ -53,6 +53,11 @@ Deux ou trois candidates variables, chiffres à chasse fixe, sous-ensemble latin
 en woff2, posées dans `polices/`.
 **Preuve** : poids du fichier annoncé, et la page rendue **réseau coupé** avec la
 bonne police, pas un repli système.
+**Fait le 2026-09-23 : elle a choisi Archivo**, 34 Ko, sous-ensemble latin,
+variable de 400 à 800. Bricolage Grotesque est retirée du dépôt.
+`tools/essai-polices.mjs` demande à la page si la police est servie et compare
+la largeur de 111 et de 999 : coupée, elle retombe sur le système sans qu'une
+capture le dise.
 
 ### 4. Le modèle, avant toute interface
 `js/moments.js` et `js/stockage.js`. Un moment porte : identifiant tiré au hasard,
@@ -64,6 +69,11 @@ par mois sur un changement d'année, retirer par marque sans perdre la ligne,
 reposer deux fois le même identifiant sans créer de doublon, et une écriture
 refusée qui **lève** au lieu de mentir. Chaque test est prouvé en injectant le
 défaut qu'il doit attraper.
+**Fait le 2026-09-23** : 15 tests verts, et `tools/essai-tests.mjs` abîme le
+code dans une copie jetable pour exiger que la batterie échoue. Cinq défauts
+injectés, cinq attrapés : la ligne effacée au lieu d'être marquée, la fusion
+qui empile, les moments retirés qui comptent encore, les mois vides qui
+disparaissent, et l'écriture refusée avalée en silence.
 
 ### 5. L'accueil, sans interaction
 Structure et style : `height:100svh`, la page ne défile pas, bouton pleine largeur

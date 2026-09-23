@@ -1,8 +1,15 @@
 {
-  "dependencies": {
-    "@material/material-color-utilities": "^0.4.0"
-  },
   "devDependencies": {
+    "@material/material-color-utilities": "^0.4.0",
     "playwright": "^1.63.0"
+  },
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "palette": "node --import ./tools/crochets.mjs tools/palette.mjs",
+    "essai-tests": "node tools/essai-tests.mjs",
+    "captures": "node tools/captures.mjs",
+    "polices": "node tools/essai-polices.mjs"
   }
 }

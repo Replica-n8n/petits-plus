@@ -6,7 +6,6 @@ import { chromium, devices } from 'playwright';
 const BASE = process.env.BASE ?? 'http://localhost:8105';
 const ESSAIS = [
   ['archivo', 'Archivo', '/maquettes/police-archivo.html'],
-  ['bricolage', 'Bricolage Grotesque', '/maquettes/police-bricolage.html'],
 ];
 
 const navigateur = await chromium.launch();
