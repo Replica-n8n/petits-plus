@@ -1,0 +1,15 @@
+# Petits plus : le serveur du partage à deux.
+# Déployer : npx wrangler deploy (depuis ce dossier), avec le compte Cloudflare
+# de l'utilisatrice. L'adresse est https://petits-plus.jfrxdi0zz.workers.dev
+name = "petits-plus"
+main = "worker.js"
+compatibility_date = "2026-09-01"
+
+[[durable_objects.bindings]]
+name = "COUPLES"
+class_name = "Couple"
+
+# Durable Object stocké en SQLite : disponible sur le plan gratuit
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Couple"]
