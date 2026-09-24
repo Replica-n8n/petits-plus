@@ -24,11 +24,13 @@ export const estUnLangage = (langue) => IDS.has(langue);
  * touche à rien si l'identifiant est inconnu, et refuse un langage inventé
  * plutôt que de le ranger en silence.
  */
-export function preciser(liste, id, langue) {
+export function preciser(liste, id, langue, maintenant = Date.now()) {
   if (!estUnLangage(langue)) {
     throw new Error(`langage inconnu : ${langue}`);
   }
-  return liste.map((m) => (m.id === id ? { ...m, langue } : m));
+  // modifieLe : deux téléphones qui précisent le même moment doivent savoir
+  // lequel garder, et c'est le plus récent.
+  return liste.map((m) => (m.id === id ? { ...m, langue, modifieLe: maintenant } : m));
 }
 
 /**

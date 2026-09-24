@@ -24,35 +24,64 @@ const identifiant = () => {
 export function ajouter(liste, { maintenant, auteur, langue = null }) {
   return [
     ...liste,
-    { id: identifiant(), instant: maintenant, auteur, langue, supprime: false },
+    { id: identifiant(), instant: maintenant, auteur, langue, supprime: false, modifieLe: maintenant },
   ];
 }
 
 /** Marque un moment comme retiré. La ligne reste, sinon elle reviendrait. */
 export function retirer(liste, id, maintenant) {
-  return liste.map((m) => (m.id === id ? { ...m, supprime: true, retireLe: maintenant } : m));
+  return liste.map((m) => (m.id === id
+    ? { ...m, supprime: true, retireLe: m.retireLe ?? maintenant, modifieLe: maintenant }
+    : m));
+}
+
+// Une empreinte du CONTENU d'un moment, clés triées. Elle sert à départager
+// deux versions de même heure sans dépendre de l'ordre où on les reçoit.
+const empreinte = (m) => JSON.stringify(Object.keys(m).sort().map((k) => [k, m[k]]));
+
+/** La version la plus récente ; à égalité, un choix qui ne dépend que du contenu. */
+function plusRecente(a, b) {
+  const ta = a.modifieLe ?? 0;
+  const tb = b.modifieLe ?? 0;
+  if (ta !== tb) return ta > tb ? a : b;
+  return empreinte(a) >= empreinte(b) ? a : b;
+}
+
+/**
+ * Deux versions du même moment, venues de deux téléphones, en une seule.
+ *
+ * La règle doit donner EXACTEMENT le même résultat dans les deux sens, sinon
+ * deux téléphones qui s'échangent les mêmes moments finissent par voir deux
+ * choses différentes, en silence. Donc :
+ * - la version la plus récente l'emporte pour le langage ;
+ * - la suppression l'emporte toujours, même sur un langage posé après elle :
+ *   un moment retiré ne revient jamais ;
+ * - la date du retrait est la PREMIÈRE connue.
+ */
+export function fusionnerUn(connu, entrant) {
+  const recente = plusRecente(connu, entrant);
+  const ancienne = recente === connu ? entrant : connu;
+  const fusion = {
+    ...ancienne,
+    ...recente,
+    supprime: Boolean(connu.supprime || entrant.supprime),
+    modifieLe: Math.max(connu.modifieLe ?? 0, entrant.modifieLe ?? 0),
+  };
+  const retraits = [connu.retireLe, entrant.retireLe].filter(Number.isFinite);
+  if (retraits.length) fusion.retireLe = Math.min(...retraits);
+  else delete fusion.retireLe;
+  return fusion;
 }
 
 /**
  * Range des moments venus d'ailleurs dans la liste, sans jamais créer de
- * doublon : l'identifiant vient du téléphone qui a appuyé. Une suppression
- * l'emporte, dans les deux sens, parce qu'une marque ne doit pas se perdre.
+ * doublon : l'identifiant vient du téléphone qui a appuyé.
  */
 export function fusionner(liste, entrants) {
   const parId = new Map(liste.map((m) => [m.id, m]));
   for (const entrant of entrants) {
     const connu = parId.get(entrant.id);
-    if (!connu) {
-      parId.set(entrant.id, entrant);
-      continue;
-    }
-    const supprime = connu.supprime || entrant.supprime;
-    parId.set(entrant.id, {
-      ...connu,
-      ...entrant,
-      supprime,
-      retireLe: connu.retireLe ?? entrant.retireLe,
-    });
+    parId.set(entrant.id, connu ? fusionnerUn(connu, entrant) : entrant);
   }
   return [...parId.values()];
 }

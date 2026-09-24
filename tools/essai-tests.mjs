@@ -8,7 +8,7 @@ import { spawnSync } from 'node:child_process';
 
 const DEFAUTS = [
   ['retirer efface la ligne au lieu de la marquer', 'js/moments.js',
-    'return liste.map((m) => (m.id === id ? { ...m, supprime: true, retireLe: maintenant } : m));',
+    'return liste.map((m) => (m.id === id\n    ? { ...m, supprime: true, retireLe: m.retireLe ?? maintenant, modifieLe: maintenant }\n    : m));',
     'return liste.filter((m) => m.id !== id);'],
   ['fusionner empile sans regarder les identifiants', 'js/moments.js',
     'const parId = new Map(liste.map((m) => [m.id, m]));',
@@ -22,6 +22,18 @@ const DEFAUTS = [
   ['une écriture refusée est avalée en silence', 'js/stockage.js',
     'zone.setItem(CLE_MOMENTS, JSON.stringify(moments));',
     'try { zone.setItem(CLE_MOMENTS, JSON.stringify(moments)); } catch { /* avalée */ }'],
+  ['à égalité d\'heure, la fusion dépend de l\'ordre de réception', 'js/moments.js',
+    'return empreinte(a) >= empreinte(b) ? a : b;',
+    'return a;'],
+  ['la suppression ne l\'emporte plus sur un langage posé après', 'js/moments.js',
+    'supprime: Boolean(connu.supprime || entrant.supprime),',
+    'supprime: Boolean(recente.supprime),'],
+  ['la date du retrait n\'est plus la première connue', 'js/moments.js',
+    'if (retraits.length) fusion.retireLe = Math.min(...retraits);',
+    'if (retraits.length) fusion.retireLe = Math.max(...retraits);'],
+  ['préciser ne date plus sa modification', 'js/langages.js',
+    '{ ...m, langue, modifieLe: maintenant }',
+    '{ ...m, langue }'],
 ];
 
 let manques = 0;
@@ -42,7 +54,7 @@ for (const [nom, fichier, avant, apres] of DEFAUTS) {
   writeFileSync(cible, source.replace(avant, apres));
 
   const passe = spawnSync(process.execPath,
-    ['--test', 'test/moments.test.mjs', 'test/stockage.test.mjs'],
+    ['--test', 'test/moments.test.mjs', 'test/stockage.test.mjs', 'test/fusion.test.mjs', 'test/langages.test.mjs', 'test/jours.test.mjs'],
     { cwd: bac, encoding: 'utf8' });
   const attrape = passe.status !== 0;
   if (!attrape) manques += 1;
