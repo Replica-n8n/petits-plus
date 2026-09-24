@@ -135,6 +135,13 @@ valeur.
 Capter `beforeinstallprompt` et proposer un bouton visible. Le repli iOS
 (« Partager, puis Sur l'écran d'accueil ») s'écrit sans être vérifiable ici.
 **Preuve** : installée sur ton Pixel, par toi, et confirmée.
+**Fait le 2026-09-24, sur son vrai Pixel 9a** : installée, ouverte sans barre
+d'adresse, et le compte tient après avoir tué l'app. ⚠️ Le bouton « Installer »
+n'est PAS apparu : Chrome, interrogé par `Page.getInstallabilityErrors`, ne
+signalait aucun obstacle. C'est Chrome qui décide quand proposer
+`beforeinstallprompt` (usage du site, refus récent). Elle a installé par le
+menu ⋮ > « Ajouter à l'écran d'accueil ». Le bouton reste utile, mais il ne
+faut jamais compter sur lui seul.
 
 ### 12. L'audit et la revue
 `tools/audit.mjs` : contrastes **mesurés sur les pixels d'une capture**, cibles à
