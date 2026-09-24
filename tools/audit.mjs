@@ -223,6 +223,31 @@ for (const [niveau, nom] of Object.entries(NOMS_NIVEAUX)) {
   verifier(`numéro d'un ${nom} tient 4,5:1`, r >= 4.5, `mesuré ${r.toFixed(2)}:1 sur les pixels`);
 }
 
+// FEUILLE DE RÉGLAGES : ses cibles, et son texte sur le fond du volet.
+await page.goBack(); await page.waitForTimeout(200);
+await page.goBack(); await page.waitForTimeout(450);
+await page.evaluate(() => document.querySelector('.ouvrir-reglages').click());
+await page.waitForTimeout(450);
+const ciblesReglages = await page.evaluate(() => [...document.querySelectorAll('#volet-reglages button')]
+  .filter((n) => n.offsetParent !== null)
+  .map((n) => ({ nom: n.textContent.trim().slice(0, 24), h: Math.round(n.getBoundingClientRect().height),
+    l: Math.round(n.getBoundingClientRect().width) })));
+verifier('toutes les cibles des réglages font 44 px',
+  ciblesReglages.length >= 4 && ciblesReglages.every((c) => c.h >= 44 && c.l >= 44),
+  ciblesReglages.filter((c) => c.h < 44 || c.l < 44).map((c) => `${c.nom} ${c.l}×${c.h}`).join(', ') || `${ciblesReglages.length} cibles`);
+const captureReglages = (await page.screenshot()).toString('base64');
+const zonesReglages = await page.evaluate(() => {
+  const z = (sel) => { const b = document.querySelector(sel).getBoundingClientRect(); return { x: b.x, y: b.y, l: b.width, h: b.height }; };
+  return { texte: z('.reglages-texte'), principal: z('.reglages-principal'), option: z('.reglages-option') };
+});
+const mesuresReglages = await page.evaluate(analyserPixels,
+  { capture: captureReglages, zones: zonesReglages, echelle: PIXEL.deviceScaleFactor ?? 1 });
+for (const [cle, nom] of [['texte', 'le texte des réglages'], ['principal', 'le bouton principal des réglages'], ['option', 'une option des réglages']]) {
+  const { fond, encre } = mesuresReglages[cle];
+  const r = rapport(encre, fond);
+  verifier(`${nom} tient 4,5:1`, r >= 4.5, `mesuré ${r.toFixed(2)}:1 sur les pixels`);
+}
+
 // 3. La couleur du thème ne doit pas diverger de la palette générée.
 const couleurs = readFileSync('css/couleurs.css', 'utf8');
 const fondGenere = couleurs.slice(couleurs.indexOf('--fond:') + 7, couleurs.indexOf(';', couleurs.indexOf('--fond:'))).trim();
@@ -235,13 +260,13 @@ verifier('les couleurs du manifeste suivent la palette',
 
 // 4. Le tampon de version ne vit que dans sw.js : deux endroits finissent
 // toujours par diverger, et donnent du nouveau HTML avec de l'ancien JS.
-for (const fichier of ['index.html', 'js/app.js', 'js/moments.js', 'js/stockage.js', 'js/langages.js', 'js/jours.js', 'js/annee.js', 'css/app.css']) {
+for (const fichier of ['index.html', 'js/app.js', 'js/moments.js', 'js/stockage.js', 'js/langages.js', 'js/jours.js', 'js/annee.js', 'js/partage.js', 'js/reglages.js', 'css/app.css']) {
   verifier(`aucun tampon ?v= écrit à la main dans ${fichier}`,
     !readFileSync(fichier, 'utf8').includes('?v='));
 }
 
 // 5. Aucun tiret cadratin dans ce qui s'affiche.
-const textes = ['index.html', 'js/app.js', 'js/langages.js', 'js/jours.js', 'js/annee.js', 'manifest.webmanifest', 'css/app.css']
+const textes = ['index.html', 'js/app.js', 'js/langages.js', 'js/jours.js', 'js/annee.js', 'js/partage.js', 'js/reglages.js', 'manifest.webmanifest', 'css/app.css']
   .map((f) => [f, readFileSync(f, 'utf8')]);
 for (const [fichier, contenu] of textes) {
   verifier(`aucun tiret cadratin dans ${fichier}`, !contenu.includes('—'));
