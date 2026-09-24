@@ -34,6 +34,21 @@ const DEFAUTS = [
   ['préciser ne date plus sa modification', 'js/langages.js',
     '{ ...m, langue, modifieLe: maintenant }',
     '{ ...m, langue }'],
+  ['un moment modifié pendant un envoi est rayé de la file', 'js/partage.js',
+    'for (const id of lot) if (!modifiesPendant.has(id)) file.delete(id);',
+    'for (const id of lot) file.delete(id);'],
+  ['une erreur 500 coupe le partage', 'js/partage.js',
+    "if (!r.ok) return { passager: true };",
+    "if (!r.ok) return { coupe: 'inconnu' };"],
+  ['la file d\'envoi ne survit pas au rechargement', 'js/partage.js',
+    'const file = new Set(etat.aEnvoyer);',
+    'const file = new Set();'],
+  ['un code inconnu appaire quand même', 'js/partage.js',
+    'if (essai.coupe) return { ok: false, raison: essai.coupe };',
+    ''],
+  ['changer le code oublie ce que l\'ancien rendait', 'js/partage.js',
+    'if (ancien.donnees?.moments?.length) {',
+    'if (false) {'],
 ];
 
 let manques = 0;
@@ -54,7 +69,7 @@ for (const [nom, fichier, avant, apres] of DEFAUTS) {
   writeFileSync(cible, source.replace(avant, apres));
 
   const passe = spawnSync(process.execPath,
-    ['--test', 'test/moments.test.mjs', 'test/stockage.test.mjs', 'test/fusion.test.mjs', 'test/langages.test.mjs', 'test/jours.test.mjs'],
+    ['--test', 'test/moments.test.mjs', 'test/stockage.test.mjs', 'test/fusion.test.mjs', 'test/langages.test.mjs', 'test/jours.test.mjs', 'test/partage.test.mjs'],
     { cwd: bac, encoding: 'utf8' });
   const attrape = passe.status !== 0;
   if (!attrape) manques += 1;
