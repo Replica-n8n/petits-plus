@@ -62,8 +62,11 @@ mutations.
 ### 2. Le serveur, testé en local
 Worker + Durable Object en SQLite dans `serveur/`. `POST /couples` crée un
 code ; `POST /couples/:code/sync` reçoit des moments et rend ceux qui ont
-changé depuis un curseur ; `POST /couples/:code/code` change le code et coupe
-l'ancien. Tout moment reçu est validé, les requêtes sont plafonnées.
+changé depuis un curseur ; `POST /couples/:code/couper` rend tout ce que le
+couple avait et se coupe dans le même geste. Changer le code, c'est le
+téléphone qui le fait : il crée un nouveau couple, coupe l'ancien, et reporte
+sur le nouveau ce que l'ancien a rendu. Tout moment reçu est validé, les
+requêtes sont plafonnées.
 **Preuve** : `tools/essai-serveur.mjs` contre `wrangler dev`, puis les mêmes
 contrôles avec des défauts injectés.
 
@@ -82,3 +85,34 @@ Worker local, puis contre le vrai.
 ### 5. Audit, revue, production, puis vos deux téléphones
 ⚠️ Attendre que la production serve vraiment le nouveau fichier avant d'y
 croire. Et le test qui compte : ton Pixel et le téléphone de ta copine.
+
+## Fait le 2026-09-24
+
+- **Modèle** : `modifieLe`, fusion identique dans les deux sens. 48 tests.
+- **Serveur** : déployé sur `https://petits-plus.jfrxdi0zz.workers.dev`,
+  `pp-1`. 23 contrôles verts en local ET trois fois de suite en production ;
+  5 copies abîmées du serveur, toutes attrapées.
+- **App** : réglages, appairage, file d'envoi, rythme des échanges, doublon,
+  partage coupé visible. 23 contrôles à deux navigateurs indépendants ;
+  5 copies abîmées de l'app, toutes attrapées. `VERSION` 8.
+- **Banc de mutations du modèle et du partage** : 14 défauts, 14 attrapés.
+
+Ce qui a été trouvé en chemin :
+
+- **Le banc du serveur laissait passer les erreurs sans en-tête CORS** : il
+  n'empruntait jamais le chemin d'un code mal formé, celui d'un O tapé à la
+  place d'un 0. Sans l'en-tête, le téléphone aurait affiché « pas de réseau »
+  au lieu de « ce code n'existe pas ».
+- **Le serveur a répondu 500 quelques secondes après son premier
+  déploiement.** D'où la règle de l'app : 404 et 410 coupent le partage, tout
+  le reste est passager et se retente.
+- **Les tables du serveur naissaient pour n'importe quel code essayé** :
+  elles ne naissent plus qu'à la création d'un vrai couple.
+- **Mon test de l'envoi en cours attendait une file non vide** alors que la
+  synchro, plus juste que le test, la vidait en renvoyant elle-même la version
+  modifiée. C'est le test qui a été corrigé, et un défaut injecté prouve qu'il
+  attrape bien la vraie panne.
+
+**Reste à prouver, et seuls vous deux pouvez le faire** : ton Pixel et le
+téléphone de ta copine, contre le vrai serveur.
+
