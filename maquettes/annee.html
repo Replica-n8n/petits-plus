@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Petits plus, maquette de l'année</title>
+<link rel="stylesheet" href="../css/couleurs.css">
+<style>
+  @font-face { font-family: 'Archivo'; src: url('../polices/archivo-latin.woff2') format('woff2'); font-weight: 400 800; }
+  *, *::before, *::after { box-sizing: border-box; }
+  :root { --e1: 4px; --e2: 8px; --e3: 12px; --e4: 16px; --e5: 24px; --e6: 32px; }
+  html, body { margin: 0; }
+  body {
+    background: var(--fond); color: var(--texte);
+    font-family: 'Archivo', system-ui, sans-serif; font-variant-numeric: tabular-nums;
+    padding: var(--e4);
+  }
+  .retour {
+    min-height: 44px; display: inline-flex; align-items: center; gap: 6px;
+    color: var(--texte-doux); font-size: 15px; text-decoration: none; padding-right: var(--e2);
+  }
+  .periode { font-size: 15px; color: var(--texte-doux); margin-top: var(--e3); }
+  .total { font-size: 64px; font-weight: 800; line-height: .95; color: var(--accent); letter-spacing: -.02em; margin-top: var(--e1); }
+  .total small { font-size: 17px; font-weight: 600; color: var(--texte); letter-spacing: 0; margin-left: 6px; }
+  h2 { font-size: 15px; font-weight: 600; color: var(--texte-doux); margin: var(--e5) 0 var(--e3); }
+
+  /* La répartition : le nom écrit à côté de sa part, aucune légende. */
+  .rep { display: grid; grid-template-columns: 9.5em 1fr 2ch; gap: var(--e2) var(--e3); align-items: center; font-size: 15px; }
+  .rep .part { height: 10px; border-radius: 5px; background: var(--accent-passe); }
+  .rep .part.premier { background: var(--accent); }
+  .rep .n { text-align: right; color: var(--texte-doux); }
+
+  /* A : douze lignes, un jour par case. */
+  .lignes { display: grid; grid-template-columns: 2.6em 1fr; gap: 5px var(--e2); align-items: center; }
+  .lignes .mois { font-size: 12px; color: var(--texte-doux); }
+  .lignes .jours { display: grid; grid-template-columns: repeat(31, 1fr); gap: 2px; }
+  .lignes .jours i { display: block; aspect-ratio: 1; border-radius: 2px; }
+
+  /* B : un mois à la fois, une case de 44 px par jour. */
+  .nav-mois { display: flex; align-items: center; justify-content: space-between; }
+  .nav-mois button {
+    min-width: 44px; min-height: 44px; background: none; border: 0; color: var(--texte);
+    font: inherit; font-size: 22px;
+  }
+  .nav-mois span { font-size: 17px; font-weight: 600; }
+  .semaine, .calendrier { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .semaine span { text-align: center; font-size: 12px; color: var(--texte-doux); padding: var(--e1) 0; }
+  .calendrier b {
+    aspect-ratio: 1; min-height: 40px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 400; font-size: 14px; color: var(--texte-doux);
+  }
+  .calendrier b.n { color: var(--sur-bouton); font-weight: 700; }
+  .calendrier b.aujourdhui { outline: 2px solid var(--texte); outline-offset: -2px; }
+
+  .i0 { background: var(--fond-eleve); }
+  .i1 { background: color-mix(in oklab, var(--accent-passe) 60%, var(--fond)); }
+  .i2 { background: var(--accent-passe); }
+  .i3 { background: var(--bouton); }
+  .i4 { background: var(--accent); }
+</style>
+</head>
+<body>
+  <a class="retour" href="#">‹ Accueil</a>
+  <div class="periode">d'octobre 2025 à septembre 2026</div>
+  <div class="total"><span id="total">0</span><small>moments</small></div>
+
+  <h2>Par langage</h2>
+  <div class="rep" id="rep"></div>
+
+  <h2 id="titre-grille">Jour par jour</h2>
+  <div id="grille"></div>
+
+<script>
+  // Des données plausibles et STABLES, pour que les deux maquettes montrent
+  // exactement les mêmes jours.
+  let graine = 7;
+  const hasard = () => { graine = (graine * 16807) % 2147483647; return graine / 2147483647; };
+  const aujourdhui = new Date(2026, 8, 24);
+  const parJour = new Map();
+  let total = 0;
+  for (let recul = 0; recul < 365; recul += 1) {
+    const d = new Date(aujourdhui); d.setDate(d.getDate() - recul);
+    if (d < new Date(2025, 9, 1)) break;
+    const r = hasard();
+    const n = r < 0.62 ? 0 : r < 0.84 ? 1 : r < 0.95 ? 2 : 3;
+    if (n) { parJour.set(d.toDateString(), n); total += n; }
+  }
+  document.getElementById('total').textContent = total;
+
+  const langues = [['Services rendus', 61], ['Paroles valorisantes', 44], ['Toucher physique', 31],
+    ['Moments de qualité', 22], ['Cadeaux', 9]];
+  const sommet = langues[0][1];
+  document.getElementById('rep').innerHTML = langues.map(([nom, n], i) =>
+    `<span>${nom}</span><span class="part${i === 0 ? ' premier' : ''}" style="width:${(n / sommet) * 100}%"></span><span class="n">${n}</span>`).join('');
+
+  const intensite = (n) => (n >= 3 ? 'i4' : n === 2 ? 'i3' : n === 1 ? 'i2' : 'i0');
+  const NOMS = ['janv', 'févr', 'mars', 'avr', 'mai', 'juin', 'juil', 'août', 'sept', 'oct', 'nov', 'déc'];
+  const forme = new URLSearchParams(location.search).get('forme') ?? 'a';
+  const grille = document.getElementById('grille');
+
+  if (forme === 'a') {
+    grille.className = 'lignes';
+    let html = '';
+    for (let k = 0; k < 12; k += 1) {
+      const m = new Date(2025, 9 + k, 1);
+      const jours = new Date(m.getFullYear(), m.getMonth() + 1, 0).getDate();
+      let cases = '';
+      for (let j = 1; j <= 31; j += 1) {
+        const d = new Date(m.getFullYear(), m.getMonth(), j);
+        cases += j > jours || d > aujourdhui ? '<i></i>' : `<i class="${intensite(parJour.get(d.toDateString()) ?? 0)}"></i>`;
+      }
+      html += `<span class="mois">${NOMS[m.getMonth()]}</span><span class="jours">${cases}</span>`;
+    }
+    grille.innerHTML = html;
+  } else {
+    document.getElementById('titre-grille').textContent = 'Jour par jour';
+    const m = new Date(2026, 8, 1);
+    const decalage = (m.getDay() + 6) % 7;
+    const jours = new Date(2026, 9, 0).getDate();
+    let cases = '';
+    for (let v = 0; v < decalage; v += 1) cases += '<span></span>';
+    for (let j = 1; j <= jours; j += 1) {
+      const d = new Date(2026, 8, j);
+      const n = d > aujourdhui ? 0 : (parJour.get(d.toDateString()) ?? 0);
+      const classe = `${intensite(n)}${n ? ' n' : ''}${j === 24 ? ' aujourdhui' : ''}`;
+      cases += `<b class="${classe}">${j}</b>`;
+    }
+    grille.innerHTML = `
+      <div class="nav-mois"><button aria-label="Mois précédent">‹</button><span>septembre 2026</span><button aria-label="Mois suivant">›</button></div>
+      <div class="semaine"><span>lu</span><span>ma</span><span>me</span><span>je</span><span>ve</span><span>sa</span><span>di</span></div>
+      <div class="calendrier">${cases}</div>`;
+  }
+</script>
+</body>
+</html>
