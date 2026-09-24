@@ -70,7 +70,20 @@ restent.
 **Preuve** : le réglage survit au rechargement, et l'app décochée ne perd aucun
 moment.
 
-### 6. La répartition : deux maquettes avant de coder
+### 6. La répartition : TRANCHÉ le 2026-09-24, elle part en tranche 3
+Trois options montrées en maquettes injectées par-dessus l'app réelle : une
+barre empilée, une phrase, ou rien sur l'accueil. **Retenu : rien sur
+l'accueil.** La barre empilée aurait exigé une légende à relire à chaque coup
+d'oeil, et l'accueil est un écran de geste : le graphe y répond déjà à « est-ce
+que ça monte », alors que « par quel langage » est une question qu'on se pose
+posément. La répartition ira donc sur l'écran de l'année, avec la place
+d'écrire les noms à côté des parts.
+
+**Le seuil, décidé en même temps** : elle ne s'affichera que si au moins la
+moitié des moments des douze mois portent un langage, et au minimum dix. En
+dessous, elle décrirait surtout les jours où on a pensé à préciser.
+
+### 6 bis. Ce qui avait été prévu ici
 La question laissée ouverte par la spec, à trancher sur pièces avec elle : où
 la montrer sans ajouter une légende qu'on relit à chaque coup d'oeil, et à
 partir de combien de moments précisés elle a de quoi dire quelque chose.

@@ -185,22 +185,33 @@ function poserLesLangues() {
   }));
 }
 
+/* Pendant que le volet est ouvert, le reste de la page devient inatteignable :
+   sans ça, la tabulation et les lecteurs d'écran passent DERRIÈRE le volet,
+   jusqu'au bouton + qui compterait un moment de plus. */
+const fondDuVolet = () => [...document.body.children].filter((n) => n !== vue.volet);
+const rendreLeFondInatteignable = () => fondDuVolet().forEach((n) => { n.inert = true; });
+const rendreLeFondAtteignable = () => fondDuVolet().forEach((n) => { n.inert = false; });
+
 function ouvrirVolet(id) {
   if (!id) return;
   idAPreciser = id;
   cacherBandeau({ oublier: false });
   vue.volet.hidden = false;
+  rendreLeFondInatteignable();
   vue.langues.firstElementChild?.focus();
 }
 
-function fermerVolet({ texte = 'Gardé' } = {}) {
+function fermerVolet({ texte = 'Gardé', choisi = false } = {}) {
   if (vue.volet.hidden) return;
   vue.volet.hidden = true;
   idAPreciser = null;
+  rendreLeFondAtteignable();
   vue.plus.focus();
   // Le bandeau revient APRÈS le volet : sans lui, un appui long n'aurait
-  // jamais eu son « Annuler ».
-  montrerBandeau(texte, { avecPreciser: false });
+  // jamais eu son « Annuler ». Fermer SANS choisir laisse « préciser » offert :
+  // on vient peut-être d'ouvrir le volet par erreur, et le moment est toujours
+  // là pour être précisé.
+  montrerBandeau(texte, { avecPreciser: !choisi });
 }
 
 function choisirLangue(id, court) {
@@ -210,7 +221,7 @@ function choisirLangue(id, court) {
   if (!garder(apres)) return;
   rendre();
   navigator.vibrate?.(8);
-  fermerVolet({ texte: `Gardé · ${court}` });
+  fermerVolet({ texte: `Gardé · ${court}`, choisi: true });
 }
 
 function annuler() {

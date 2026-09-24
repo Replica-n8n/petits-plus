@@ -64,9 +64,8 @@ Trois écrans : un pour agir, un pour regarder, une feuille pour les réglages.
 ### L'accueil, écran d'usage
 
 De haut en bas : le mois en cours en gros chiffre, les mois en colonnes avec le
-mois en cours en couleur vive, la répartition des langages si elle a de quoi
-parler, un espace vide, puis le bouton **+** pleine largeur en bas, 72 px de
-haut, sous le pouce. `height:100svh`, la page ne défile pas. Une cible
+mois en cours en couleur vive, un espace vide, puis le bouton **+** pleine
+largeur en bas, 72 px de haut, sous le pouce. `height:100svh`, la page ne défile pas. Une cible
 `L'année ›` en haut ouvre le second écran, une icône ouvre les réglages.
 
 **Le graphe ne commence jamais avant le premier moment gardé**, et il monte
@@ -120,7 +119,11 @@ Sans réponse, **les deux restent** : un appui volontaire ne se supprime pas tou
 ### L'écran de l'année
 
 La grille des jours en pastilles, plus foncées quand plusieurs moments, le total de
-l'année, la répartition des cinq langages. Toucher un jour montre ce qu'il contient,
+l'année, et **la répartition des cinq langages**, déplacée ici le 2026-09-24 :
+sur l'accueil elle aurait demandé une légende à relire à chaque coup d'oeil,
+alors qu'ici il y a la place d'écrire les noms à côté des parts. Elle ne
+s'affiche que si au moins la moitié des moments des douze mois portent un
+langage, et au minimum dix. Toucher un jour montre ce qu'il contient,
 et permet d'en retirer un **le jour même** seulement.
 
 ### La feuille de réglages

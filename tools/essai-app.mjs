@@ -342,6 +342,36 @@ const chiffre = (page) => page.locator('#chiffre').innerText();
   await contexte.close();
 }
 
+// 19. Le VRAI chemin tactile : sur le téléphone, un appui ne passe pas par la
+// souris. Un tap doit compter un moment, pas zéro et pas deux.
+{
+  const { contexte, page } = await ouvrir();
+  const boite = await page.locator('#plus').boundingBox();
+  await page.touchscreen.tap(boite.x + boite.width / 2, boite.y + boite.height / 2);
+  await page.waitForTimeout(150);
+  verifier('un tap au doigt compte exactement un moment', (await chiffre(page)) === '1',
+    `lu : ${await chiffre(page)}`);
+  await contexte.close();
+}
+
+// 20. Le volet ouvert rend le reste de la page inatteignable : sinon la
+// tabulation atteint le bouton + derrière lui et compte un moment de plus.
+{
+  const { contexte, page } = await ouvrir();
+  await page.click('#plus');
+  await page.locator('#preciser').click();
+  const inerte = await page.evaluate(() => document.querySelector('.plus').closest('body') &&
+    [...document.body.children].filter((n) => n.id !== 'volet').every((n) => n.inert));
+  verifier('le fond est inerte pendant le volet', inerte === true);
+  await page.keyboard.press('Escape');
+  const rendu = await page.evaluate(() =>
+    [...document.body.children].every((n) => !n.inert));
+  verifier('le fond redevient atteignable après le volet', rendu === true);
+  verifier('préciser reste offert après une fermeture sans choix',
+    await page.locator('#preciser').isVisible());
+  await contexte.close();
+}
+
 await navigateur.close();
 console.log(echecs === 0 ? '\nParcours complet : tout est vert.' : `\n${echecs} contrôle(s) en échec.`);
 if (echecs > 0) process.exit(1);

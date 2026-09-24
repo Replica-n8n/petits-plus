@@ -1,6 +1,6 @@
 // Service worker de Petits plus.
 // Une SEULE constante à bouger à chaque livraison : tout le reste en découle.
-const VERSION = 5;
+const VERSION = 6;
 
 const CACHE = `petits-plus:app:v${VERSION}`;
 const PREFIXE = 'petits-plus:app:';
