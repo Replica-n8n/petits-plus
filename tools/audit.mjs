@@ -28,10 +28,18 @@ const page = await contexte.newPage();
 await contexte.addInitScript(() => {
   const moments = [];
   const aujourdhui = new Date();
-  [6, 9, 5, 11, 9, 14].forEach((combien, rang) => {
+  [6, 9, 5, 11, 9].forEach((combien, rang) => {
     for (let i = 0; i < combien; i += 1) {
       const d = new Date(aujourdhui.getFullYear(), aujourdhui.getMonth() - (5 - rang), 1 + i, 20, 0);
       moments.push({ id: `audit-${rang}-${i}`, instant: d.getTime(), auteur: 'moi', langue: null, supprime: false });
+    }
+  });
+  // Le mois en cours porte les trois intensités, sur les jours 1 à 3 :
+  // un, deux, puis trois moments. Le jour 5 reste vide.
+  [[1, 1], [2, 2], [3, 3], [4, 8]].forEach(([jour, combien]) => {
+    for (let i = 0; i < combien; i += 1) {
+      const d = new Date(aujourdhui.getFullYear(), aujourdhui.getMonth(), jour, 9 + i, 0);
+      moments.push({ id: `audit-j${jour}-${i}`, instant: d.getTime(), auteur: 'moi', langue: null, supprime: false });
     }
   });
   localStorage.setItem('pp:moments:v1', JSON.stringify(moments));
@@ -175,6 +183,46 @@ const ecartsVolet = await page.evaluate(() => {
 });
 verifier('8 px entre deux langages', ecartsVolet.every((e) => e >= 8), ecartsVolet.join(', '));
 
+// ÉCRAN DE L'ANNÉE : ses cibles, et le numéro des jours sur leur couleur,
+// mesurés sur les pixels. C'est là que la maquette tombait à 3,54:1.
+await page.keyboard.press('Escape');
+await page.evaluate(() => document.querySelector('.lien-annee').click());
+// Les clics par script n'ont pas de position : ils tombent tous en (0,0), donc
+// au même endroit, et le garde contre le double appui ignore le suivant s'il
+// arrive dans les 350 ms. On attend que le calme soit passé.
+await page.waitForTimeout(450);
+const ciblesAnnee = await page.evaluate(() => [...document.querySelectorAll('#ecran-annee button')]
+  .filter((n) => n.offsetParent !== null)
+  .map((n) => ({ nom: n.className, h: Math.round(n.getBoundingClientRect().height),
+    l: Math.round(n.getBoundingClientRect().width) })));
+verifier("toutes les cibles de l'année font 44 px",
+  ciblesAnnee.every((c) => c.h >= 44 && c.l >= 44),
+  ciblesAnnee.filter((c) => c.h < 44 || c.l < 44).map((c) => `${c.nom} ${c.l}×${c.h}`).join(', ') || `${ciblesAnnee.length} cibles`);
+
+await page.evaluate(() => [...document.querySelectorAll('.annee-ligne')].at(-1).click());
+await page.waitForTimeout(300);
+const captureMois = (await page.screenshot()).toString('base64');
+const zonesMois = await page.evaluate(() => {
+  const zone = (n) => { const b = n.getBoundingClientRect(); return { x: b.x + 6, y: b.y + 6, l: b.width - 12, h: b.height - 12 }; };
+  const trouve = {};
+  for (const niveau of ['i1', 'i2', 'i3']) {
+    const n = document.querySelector(`.annee-jour.${niveau}:not(.aujourdhui)`);
+    if (n) trouve[niveau] = zone(n);
+  }
+  const vide = document.querySelector('.annee-jour.i0:not(.a-venir):not(.aujourdhui)');
+  if (vide) trouve.i0 = zone(vide);
+  return trouve;
+});
+const mesuresMois = await page.evaluate(analyserPixels,
+  { capture: captureMois, zones: zonesMois, echelle: PIXEL.deviceScaleFactor ?? 1 });
+const NOMS_NIVEAUX = { i0: 'jour vide', i1: 'jour à un moment', i2: 'jour à deux moments', i3: 'jour à trois et plus' };
+for (const [niveau, nom] of Object.entries(NOMS_NIVEAUX)) {
+  if (!mesuresMois[niveau]) { verifier(`${nom} présent dans le mois mesuré`, false, 'absent des données'); continue; }
+  const { fond, encre } = mesuresMois[niveau];
+  const r = rapport(encre, fond);
+  verifier(`numéro d'un ${nom} tient 4,5:1`, r >= 4.5, `mesuré ${r.toFixed(2)}:1 sur les pixels`);
+}
+
 // 3. La couleur du thème ne doit pas diverger de la palette générée.
 const couleurs = readFileSync('css/couleurs.css', 'utf8');
 const fondGenere = couleurs.slice(couleurs.indexOf('--fond:') + 7, couleurs.indexOf(';', couleurs.indexOf('--fond:'))).trim();
@@ -187,13 +235,13 @@ verifier('les couleurs du manifeste suivent la palette',
 
 // 4. Le tampon de version ne vit que dans sw.js : deux endroits finissent
 // toujours par diverger, et donnent du nouveau HTML avec de l'ancien JS.
-for (const fichier of ['index.html', 'js/app.js', 'js/moments.js', 'js/stockage.js', 'js/langages.js', 'css/app.css']) {
+for (const fichier of ['index.html', 'js/app.js', 'js/moments.js', 'js/stockage.js', 'js/langages.js', 'js/jours.js', 'js/annee.js', 'css/app.css']) {
   verifier(`aucun tampon ?v= écrit à la main dans ${fichier}`,
     !readFileSync(fichier, 'utf8').includes('?v='));
 }
 
 // 5. Aucun tiret cadratin dans ce qui s'affiche.
-const textes = ['index.html', 'js/app.js', 'js/langages.js', 'manifest.webmanifest', 'css/app.css']
+const textes = ['index.html', 'js/app.js', 'js/langages.js', 'js/jours.js', 'js/annee.js', 'manifest.webmanifest', 'css/app.css']
   .map((f) => [f, readFileSync(f, 'utf8')]);
 for (const [fichier, contenu] of textes) {
   verifier(`aucun tiret cadratin dans ${fichier}`, !contenu.includes('—'));

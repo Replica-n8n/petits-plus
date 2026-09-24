@@ -36,7 +36,13 @@ body {
    élément caché par hidden reste visible dès qu'il porte une classe en flex. */
 [hidden] { display: none !important; }
 
-.haut { display: flex; justify-content: flex-end; min-height: 44px; align-items: center; }
+.haut { display: flex; justify-content: space-between; min-height: 44px; align-items: center; }
+
+.lien-annee {
+  min-height: 44px; padding: 0 var(--e2) 0 0;
+  background: none; border: 0;
+  color: var(--texte-doux); font: inherit; font-size: 15px;
+}
 
 .discret {
   min-height: 44px; padding: 0 var(--e3);
@@ -135,7 +141,7 @@ body {
 
 /* Le volet des cinq langages. Il ne s'ouvre jamais tout seul : appui long, ou
    la cible « préciser » du bandeau. Le moment est déjà gardé quand il paraît. */
-.volet { position: fixed; inset: 0; display: flex; flex-direction: column; justify-content: flex-end; }
+.volet { position: fixed; inset: 0; z-index: 10; display: flex; flex-direction: column; justify-content: flex-end; }
 .volet-fond { position: absolute; inset: 0; background: rgba(0, 0, 0, .55); }
 .volet-corps {
   position: relative;
@@ -163,6 +169,96 @@ body {
 }
 
 :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+/* L'écran de l'année.
+   Un écran pour regarder, pas pour agir : il défile, contrairement à
+   l'accueil. Tout ce qui n'est pas lui disparaît, sauf le bandeau, qui porte
+   l'« Annuler » d'un retrait. */
+body.sur-annee { display: block; height: auto; min-height: 100svh; overflow: auto; }
+body.sur-annee > :not(#ecran-annee):not(#bandeau):not(#volet-jour) { display: none !important; }
+body.sur-annee .bandeau { bottom: max(var(--e4), env(safe-area-inset-bottom)); }
+
+/* Le bandeau d'un retrait doit rester TOUCHABLE : sous le volet du jour, son
+   « Annuler » était visible mais recouvert, donc un retrait devenait sans
+   retour. Il passe au-dessus, et en haut de l'écran pour ne pas cacher la
+   liste des moments du jour. */
+.bandeau { z-index: 20; }
+body.jour-ouvert .bandeau { top: max(var(--e4), env(safe-area-inset-top)); bottom: auto; }
+
+.annee-corps { padding-bottom: 96px; }
+
+.retour {
+  min-height: 44px; padding: 0 var(--e2) 0 0;
+  background: none; border: 0;
+  color: var(--texte-doux); font: inherit; font-size: 15px;
+}
+
+.annee-vide { color: var(--texte-doux); font-size: 15px; margin-top: var(--e5); }
+.annee-periode { font-size: 15px; color: var(--texte-doux); margin-top: var(--e3); }
+.annee-total { display: flex; align-items: baseline; gap: var(--e2); margin-top: var(--e1); }
+.annee-nombre { font-size: 64px; font-weight: 800; line-height: .95; letter-spacing: -.02em; color: var(--accent); }
+.annee-unite { font-size: 17px; font-weight: 600; }
+.annee-titre { font-size: 15px; font-weight: 600; color: var(--texte-doux); margin: var(--e5) 0 var(--e3); }
+
+/* La répartition : le nom écrit à côté de sa part, aucune légende. */
+.annee-rep {
+  display: grid; grid-template-columns: minmax(0, 9.5em) 1fr 2.5ch;
+  gap: var(--e2) var(--e3); align-items: center; font-size: 15px;
+}
+.annee-piste { display: block; height: 10px; }
+.annee-part { display: block; height: 10px; border-radius: 5px; background: var(--accent-passe); min-width: 2px; }
+.annee-part.premier { background: var(--accent); }
+.annee-n { text-align: right; color: var(--texte-doux); }
+
+/* Douze lignes. Chaque ligne est une cible de 44 px, même si ses points sont
+   petits : c'est la LIGNE qu'on touche pour ouvrir le mois. */
+.annee-lignes { display: flex; flex-direction: column; }
+.annee-ligne {
+  display: grid; grid-template-columns: 2.8em 1fr; align-items: center; gap: var(--e2);
+  min-height: 44px; width: 100%; padding: 0;
+  background: none; border: 0; border-radius: 8px;
+  color: var(--texte-doux); font: inherit; text-align: left;
+}
+.annee-mois { font-size: 13px; }
+.annee-points { display: grid; grid-template-columns: repeat(31, 1fr); gap: 2px; }
+.annee-points i { display: block; aspect-ratio: 1; border-radius: 2px; }
+.annee-points i.hors { visibility: hidden; }
+
+.i0 { background: var(--fond-eleve); }
+.i1 { background: var(--jour-1); }
+.i2 { background: var(--jour-2); }
+.i3 { background: var(--jour-3); }
+
+/* Un mois : une case de 44 px par jour, qu'on touche. */
+.annee-nav { display: flex; align-items: center; justify-content: space-between; margin-top: var(--e3); }
+.annee-fleche {
+  min-width: 44px; min-height: 44px;
+  background: none; border: 0; border-radius: 10px;
+  color: var(--texte); font: inherit; font-size: 24px;
+}
+.annee-nom-mois { font-size: 17px; font-weight: 600; }
+.annee-semaine, .annee-calendrier { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.annee-semaine span { text-align: center; font-size: 13px; color: var(--texte-doux); padding: var(--e2) 0; }
+.annee-jour {
+  aspect-ratio: 1; min-height: 44px; border: 0; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font: inherit; font-size: 15px; color: var(--texte-doux); padding: 0;
+}
+.annee-jour.i1, .annee-jour.i2, .annee-jour.i3 { color: var(--sur-jour); font-weight: 700; }
+.annee-jour.aujourdhui { box-shadow: inset 0 0 0 2px var(--texte); }
+.annee-jour.a-venir { background: none; }
+
+/* Le volet d'un jour. */
+.jour-titre { font-size: 17px; font-weight: 600; margin: 0 0 var(--e3); }
+.jour-liste { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--e2); }
+.jour-ligne { display: flex; align-items: center; gap: var(--e3); min-height: 44px; font-size: 15px; }
+.jour-heure { font-weight: 700; min-width: 3.2em; }
+.jour-langue { flex: 1; color: var(--texte-doux); }
+.jour-retirer {
+  min-height: 44px; padding: 0 var(--e4);
+  background: none; border: 1px solid var(--contour); border-radius: 12px;
+  color: var(--texte); font: inherit; font-size: 15px;
+}
 
 @media (max-height: 700px) {
   .chiffre { font-size: 80px; }

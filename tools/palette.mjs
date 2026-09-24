@@ -43,6 +43,22 @@ function tonLePlusSobre(palette, seuil) {
   throw new Error('aucun ton de la palette ne tient le seuil demandé');
 }
 
+// Les jours de l'écran de l'année portent leur NUMÉRO écrit dessus. Une case
+// doit donc tenir deux contraintes à la fois : 3:1 contre le fond, pour qu'on
+// la voie, et 4,5:1 avec le chiffre foncé posé dessus, pour qu'on le lise. Le
+// ton 45 de la maquette ne tenait ni l'un ni l'autre : le chiffre y tombait à
+// 3,54:1. On prend donc le premier ton qui tient les DEUX, puis deux pas plus
+// clairs, et l'échelle ne dépend plus de l'oeil.
+const SUR_JOUR = pris(accentue, 'onPrimaryContainer');
+function premierTonLisible(palette) {
+  for (let ton = 40; ton <= 90; ton += 5) {
+    const teinte = hexFromArgb(palette.tone(ton));
+    if (rapport(teinte, FOND) >= 3 && rapport(SUR_JOUR, teinte) >= 4.5) return ton;
+  }
+  throw new Error('aucun ton ne se voit sur le fond ET ne laisse lire un chiffre');
+}
+const TON_JOUR = premierTonLisible(accentue.primaryPalette);
+
 const couleurs = {
   '--fond': pris(neutre, 'surface'),
   '--fond-eleve': pris(neutre, 'surfaceContainerHigh'),
@@ -55,6 +71,11 @@ const couleurs = {
   '--accent-passe': tonLePlusSobre(accentue.primaryPalette, 3),
   '--bouton': pris(accentue, 'primaryContainer'),
   '--sur-bouton': pris(accentue, 'onPrimaryContainer'),
+  // Trois intensités pour les jours, du plus sobre au plus vif.
+  '--jour-1': hexFromArgb(accentue.primaryPalette.tone(TON_JOUR)),
+  '--jour-2': hexFromArgb(accentue.primaryPalette.tone(TON_JOUR + 10)),
+  '--jour-3': pris(accentue, 'primary'),
+  '--sur-jour': SUR_JOUR,
 };
 
 // Essai du garde-fou : force une couleur que l'on sait mauvaise, pour vérifier
@@ -74,6 +95,11 @@ const exigences = [
   ['bouton sur le fond', '--bouton', '--fond', 3],
   ['colonne du mois en cours', '--accent', '--fond', 3],
   ['colonne des mois passés', '--accent-passe', '--fond', 3],
+  ['jour sans rien, son numéro', '--texte-doux', '--fond-eleve', 4.5],
+  ['jour à un moment, sur le fond', '--jour-1', '--fond', 3],
+  ['jour à un moment, son numéro', '--sur-jour', '--jour-1', 4.5],
+  ['jour à deux moments, son numéro', '--sur-jour', '--jour-2', 4.5],
+  ['jour à trois et plus, son numéro', '--sur-jour', '--jour-3', 4.5],
 ];
 
 let echecs = 0;

@@ -70,3 +70,35 @@ moment retiré en sort.
 `npm run audit` étendu au nouvel écran, `/code-review`, puis la production.
 ⚠️ Attendre que le fichier servi contienne vraiment la nouvelle ligne avant de
 croire un résultat de production : la build de Pages a déjà pris cinq minutes.
+
+## Fait le 2026-09-24
+
+**Forme retenue : A puis B.** L'écran s'ouvre sur douze lignes (l'année entière,
+un jour par case), toucher une ligne ouvre le mois en calendrier de cases de
+44 px, toucher un jour ouvre son volet. « Go » donné sur cette recommandation.
+
+Ce que la tranche a trouvé en chemin, et qui valait d'être trouvé :
+
+- **Le chiffre d'un jour était illisible dans la maquette** : 3,54:1 sur le rose
+  moyen. Aucun ton ne tient à la fois 3:1 contre le fond ET 4,5:1 avec un
+  chiffre posé dessus, sauf à partir du ton 55. L'échelle des jours est donc
+  choisie par `tools/palette.mjs` sous ces deux contraintes, au plus juste
+  5,08:1, et l'audit la mesure sur les pixels.
+- **« Annuler » cassé par mon propre refactor** : le bandeau était caché, donc
+  le dernier moment oublié, AVANT que l'annulation ne s'exécute.
+- **Le bandeau d'un retrait était sous le volet du jour** : visible, mais
+  impossible à toucher. Un retrait devenait sans retour. Il passe au-dessus,
+  en haut de l'écran pour ne pas cacher la liste.
+- **Un double appui ressortait aussitôt de l'écran** : « L'année › » et
+  « ‹ Accueil » sont au même endroit, le second appui tombait sur le retour.
+  Les appuis au même endroit sont ignorés 350 ms après un changement d'écran,
+  et seulement eux.
+- **Retirer se fait en deux temps** : rien n'est écrit pendant la fenêtre
+  d'annulation, donc « Annuler » n'a jamais à ressusciter une marque de
+  suppression qui aurait pu partir vers l'autre téléphone. Quitter l'app
+  pendant la fenêtre écrit le retrait : c'était le geste voulu.
+- **Recharger sur l'écran de l'année** le rouvre, au lieu de désaccorder
+  l'écran et l'historique.
+
+Chaque correction a son contrôle, et chaque contrôle a d'abord échoué sur
+l'ancien code.

@@ -2,6 +2,7 @@
 import { ajouter, retirer, moisAMontrer, comptesDuMois, mediane } from './moments.js';
 import { stockageDuNavigateur, ErreurStockage } from './stockage.js';
 import { LANGAGES, preciser } from './langages.js';
+import { creerEcranAnnee } from './annee.js';
 
 const MOIS_MONTRES = 12;
 const BANDEAU_MS = 6000;
@@ -30,6 +31,9 @@ let minuterieBandeau = null;
 let minuterieLong = null;
 let longOuvert = false;
 let idAPreciser = null;
+// Ce que fait « Annuler » dépend de ce qui vient d'arriver : défaire un appui
+// sur l'accueil, ou rendre un moment retiré depuis l'écran de l'année.
+let annulationCourante = null;
 
 stockage.surContenuAbime((raison) => {
   direSouci(`Les moments rangés sur cet appareil sont illisibles (${raison}). ` +
@@ -116,6 +120,7 @@ function rendre({ anime = false } = {}) {
   vue.lecture.textContent = mois.length < 2 ? debut : `${debut} Mois montrés : ${suite}.`;
 
   if (anime) fairRouler(vue.chiffre);
+  ecranAnnee?.actualiser();
 }
 
 function fairRouler(element) {
@@ -126,10 +131,11 @@ function fairRouler(element) {
   );
 }
 
-function montrerBandeau(texte, { avecPreciser = true } = {}) {
+function montrerBandeau(texte, { avecPreciser = true, annulation = annulerDernierAppui } = {}) {
   clearTimeout(minuterieBandeau);
   vue.bandeauTexte.textContent = texte;
   if (vue.preciser) vue.preciser.hidden = !avecPreciser;
+  annulationCourante = annulation;
   vue.bandeau.hidden = false;
   minuterieBandeau = setTimeout(cacherBandeau, BANDEAU_MS);
 }
@@ -142,7 +148,10 @@ function montrerBandeau(texte, { avecPreciser = true } = {}) {
 function cacherBandeau({ oublier = true } = {}) {
   clearTimeout(minuterieBandeau);
   vue.bandeau.hidden = true;
-  if (oublier) dernierId = null;
+  if (oublier) {
+    dernierId = null;
+    annulationCourante = null;
+  }
 }
 
 /** Écrit, et ne ment jamais : si le rangement refuse, l'appui est repris. */
@@ -224,12 +233,21 @@ function choisirLangue(id, court) {
   fermerVolet({ texte: `Gardé · ${court}`, choisi: true });
 }
 
-function annuler() {
+function annulerDernierAppui() {
   if (!dernierId) return;
   const apres = retirer(moments, dernierId, Date.now());
   if (!garder(apres)) return;
   cacherBandeau();
   rendre({ anime: true });
+}
+
+function annuler() {
+  // L'annulation passe AVANT le rangement du bandeau : cacher le bandeau
+  // oublie le dernier moment, et l'annulation n'aurait plus rien à défaire.
+  const action = annulationCourante;
+  annulationCourante = null;
+  action?.();
+  cacherBandeau();
 }
 
 poserLesLangues();
@@ -288,6 +306,28 @@ vue.installer.addEventListener('click', async () => {
   await invite.prompt();
   invite = null;
 });
+
+// L'écran de l'année et son lien sont construits ici, pas dans index.html :
+// Pages garde le HTML dix minutes, et du JS neuf doit tourner sur un HTML ancien.
+const ecranAnnee = creerEcranAnnee({
+  lire: () => moments,
+  retirer: (id) => {
+    const apres = retirer(moments, id, Date.now());
+    if (garder(apres)) rendre();
+  },
+  bandeau: (texte, options) => montrerBandeau(texte, { avecPreciser: false, ...options }),
+});
+{
+  const haut = document.querySelector('.haut');
+  if (haut) {
+    const lien = document.createElement('button');
+    lien.type = 'button';
+    lien.className = 'lien-annee';
+    lien.textContent = "L'année ›";
+    lien.addEventListener('click', () => ecranAnnee.ouvrir());
+    haut.prepend(lien);
+  }
+}
 
 moments = stockage.lireMoments();
 rendre();

@@ -1,6 +1,6 @@
 // Service worker de Petits plus.
 // Une SEULE constante à bouger à chaque livraison : tout le reste en découle.
-const VERSION = 6;
+const VERSION = 7;
 
 const CACHE = `petits-plus:app:v${VERSION}`;
 const PREFIXE = 'petits-plus:app:';
@@ -23,6 +23,8 @@ const FICHIERS = [
   'js/moments.js',
   'js/stockage.js',
   'js/langages.js',
+  'js/jours.js',
+  'js/annee.js',
   'polices/archivo-latin.woff2',
   'manifest.webmanifest',
   'icons/icone-192.png',
