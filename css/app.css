@@ -170,6 +170,66 @@ body {
 
 :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 
+/* L'en-tête : l'année à gauche, les réglages à droite. */
+.haut-droite { display: flex; align-items: center; gap: var(--e2); }
+.ouvrir-reglages {
+  min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center;
+  background: none; border: 0; border-radius: 12px; color: var(--texte-doux); padding: 0;
+}
+
+/* Un partage coupé se voit, sans crier. */
+.alerte-partage {
+  min-height: 44px; width: 100%; margin-top: var(--e2);
+  background: var(--fond-eleve); border: 0; border-radius: 12px;
+  color: var(--texte); font: inherit; font-size: 15px; text-align: left; padding: 0 var(--e4);
+}
+
+/* La feuille de réglages : le corps défile, le pied reste en place. */
+.reglages { display: flex; flex-direction: column; max-height: 85svh; padding: 0; }
+.reglages-corps { overflow: auto; padding: var(--e4); }
+.reglages-pied {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--e3);
+  padding: var(--e2) var(--e4); padding-bottom: max(var(--e2), env(safe-area-inset-bottom));
+  border-top: 1px solid var(--contour);
+}
+.reglages-version { font-size: 13px; color: var(--texte-doux); }
+.reglages-fermer {
+  min-height: 44px; padding: 0 var(--e4); background: none; border: 0; border-radius: 12px;
+  color: var(--accent); font: inherit; font-size: 15px; font-weight: 700;
+}
+.reglages-titre { font-size: 15px; font-weight: 600; color: var(--texte-doux); margin: var(--e2) 0 var(--e3); }
+.reglages-titre:not(:first-child) { margin-top: var(--e5); }
+.reglages-texte { font-size: 15px; line-height: 1.4; margin: 0 0 var(--e3); }
+.reglages-code {
+  font-size: 40px; font-weight: 800; letter-spacing: .14em; color: var(--accent);
+  margin: 0 0 var(--e2); user-select: all; -webkit-user-select: all;
+}
+.reglages-suivi { font-size: 14px; color: var(--texte-doux); margin: 0 0 var(--e3); }
+.reglages-message { font-size: 14px; line-height: 1.4; color: var(--texte); margin: var(--e3) 0 0; min-height: 1em; }
+.reglages-principal, .reglages-secondaire {
+  display: block; width: 100%; min-height: 48px; margin-top: var(--e2);
+  border-radius: 14px; font: inherit; font-size: 16px;
+}
+.reglages-principal { background: var(--bouton); color: var(--sur-bouton); border: 0; font-weight: 700; }
+.reglages-secondaire { background: none; color: var(--texte); border: 1px solid var(--contour); }
+.reglages-secondaire.arme { border-color: var(--accent); color: var(--accent); font-weight: 700; }
+.reglages-principal:disabled, .reglages-secondaire:disabled { cursor: wait; }
+.reglages-code-form { display: flex; flex-direction: column; margin-top: var(--e3); }
+.reglages-champ {
+  min-height: 48px; padding: 0 var(--e4); border-radius: 14px;
+  background: var(--fond); color: var(--texte); border: 1px solid var(--contour);
+  font: inherit; font-size: 20px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
+}
+.reglages-champ::placeholder { font-size: 15px; font-weight: 400; letter-spacing: 0; text-transform: none; color: var(--texte-doux); }
+.reglages-choix { display: flex; flex-direction: column; gap: var(--e2); }
+.reglages-option {
+  display: flex; align-items: center; gap: var(--e3); min-height: 48px; width: 100%;
+  background: none; border: 1px solid var(--contour); border-radius: 14px;
+  color: var(--texte); font: inherit; font-size: 16px; text-align: left; padding: 0 var(--e4);
+}
+.reglages-option[aria-checked="true"] { border-color: var(--accent); }
+.reglages-coche { width: 22px; height: 22px; color: var(--accent); flex: none; }
+
 /* L'écran de l'année.
    Un écran pour regarder, pas pour agir : il défile, contrairement à
    l'accueil. Tout ce qui n'est pas lui disparaît, sauf le bandeau, qui porte

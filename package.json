@@ -10,6 +10,7 @@
     "capture-app": "node tools/capture-app.mjs",
     "captures": "node tools/captures.mjs",
     "essai-app": "node tools/essai-app.mjs",
+    "essai-deux": "node tools/essai-deux.mjs",
     "essai-serveur": "node tools/essai-serveur.mjs",
     "essai-serveur-mutations": "node tools/essai-serveur-mutations.mjs",
     "essai-tests": "node tools/essai-tests.mjs",
